@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QPointer>
+#include <QFutureWatcher>
 
 QT_BEGIN_NAMESPACE
 class QStandardItemModel;
@@ -19,8 +20,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+signals:
+    void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
+    void signalGetChapterResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
+
 private slots:
     void slotGetContents(bool checked=true);
+    void slotReceiveGetGontentsResponse(const QByteArray &std_out, const QByteArray &std_err);
+    void slotReceiveGetChapterResponse(const QByteArray &std_out, const QByteArray &std_err);
 
     void slotSelectLocalDirectory(bool checked=true);
 
@@ -30,5 +37,12 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<QStandardItemModel> novel_content_model_;
+
+    QString python_env_dir_;
+    QString python_bin_path_;
+    QString plugin_dir_;
+
+    QVector<QString> download_tasks_;
+    QFutureWatcher<void> future_watcher_;
 };
 

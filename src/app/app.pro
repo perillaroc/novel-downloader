@@ -1,6 +1,6 @@
 include(../../novel_downloader.pri)
 
-QT       += core gui widgets
+QT       += core gui widgets concurrent
 
 TARGET = novel_downloader
 TEMPLATE = app

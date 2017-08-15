@@ -77,7 +77,14 @@
      </layout>
     </item>
     <item row="2" column="0">
-     <widget class="QTableView" name="novel_content_view"/>
+     <widget class="QTableView" name="novel_content_view">
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <attribute name="horizontalHeaderCascadingSectionResizes">
+       <bool>true</bool>
+      </attribute>
+     </widget>
     </item>
    </layout>
   </widget>
