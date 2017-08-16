@@ -12,6 +12,12 @@ namespace Ui {
 class MainWindow;
 }
 
+struct DownloadTask{
+    QString name_;
+    QString link_;
+    int task_no_;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -22,16 +28,17 @@ public:
 
 signals:
     void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
-    void signalGetChapterResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
+    void signalGetChapterResponseReceived(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
 private slots:
     void slotGetContents(bool checked=true);
     void slotReceiveGetGontentsResponse(const QByteArray &std_out, const QByteArray &std_err);
-    void slotReceiveGetChapterResponse(const QByteArray &std_out, const QByteArray &std_err);
+    void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
     void slotSelectLocalDirectory(bool checked=true);
 
     void slotDownload(bool checked=true);
+    void slotPauseDownload(bool checked=true);
 
 private:
     Ui::MainWindow *ui;
@@ -42,7 +49,6 @@ private:
     QString python_bin_path_;
     QString plugin_dir_;
 
-    QVector<QString> download_tasks_;
+    QVector<DownloadTask> download_tasks_;
     QFutureWatcher<void> future_watcher_;
 };
-

@@ -17,6 +17,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui{new Ui::MainWindow},
     novel_content_model_{new QStandardItemModel{this}}
 {
+    qRegisterMetaType<DownloadTask>("DownloadTask");
+
+
     ui->setupUi(this);
 
     ui->novel_content_view->setModel(novel_content_model_);
@@ -24,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->get_contents_button, &QPushButton::clicked, this, &MainWindow::slotGetContents);
     connect(ui->select_local_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectLocalDirectory);
     connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
+    connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
     connect(this, &MainWindow::signalGetChapterResponseReceived, this, &MainWindow::slotReceiveGetChapterResponse);
@@ -92,16 +96,14 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
             QList<QStandardItem*>()
                     <<new QStandardItem(name)
                     <<new QStandardItem(link)
-                    <<new QStandardItem()
+                    <<new QStandardItem("Pause")
         );
     }
 
     ui->novel_content_view->resizeColumnsToContents();
-
-
 }
 
-void MainWindow::slotReceiveGetChapterResponse(const QByteArray &std_out, const QByteArray &std_err)
+void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err)
 {
     QJsonParseError json_parse_error;
     QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
@@ -111,7 +113,9 @@ void MainWindow::slotReceiveGetChapterResponse(const QByteArray &std_out, const 
     QJsonObject response = data["response"].toObject();
     QString chapter = response["chapter"].toString();
 
-    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
+    novel_content_model_->item(task.task_no_, 2)->setText("Complete");
+
+//    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
 }
 
 void MainWindow::slotSelectLocalDirectory(bool checked)
@@ -144,12 +148,17 @@ void MainWindow::slotDownload(bool checked)
     download_tasks_.clear();
     for(int i=0; i<novel_content_model_->rowCount(); i++)
     {
-        QString name = novel_content_model_->item(i, 0)->text();
-        QString link = novel_content_model_->item(i, 1)->text();
-        download_tasks_.push_back(link);
+        DownloadTask task;
+        task.name_ = novel_content_model_->item(i, 0)->text();
+        task.link_ = novel_content_model_->item(i, 1)->text();
+        task.task_no_ = i;
+        novel_content_model_->item(i, 2)->setText("Queue");
+        download_tasks_.push_back(task);
     }
 
-    future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const QString &content_url){
+    future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
+        novel_content_model_->item(task.task_no_, 2)->setText("Active");
+        QString content_url = task.link_;
         QPointer<QProcess> get_chapter_process = new QProcess;
         QString program = python_bin_path_;
         QStringList arguments;
@@ -161,7 +170,7 @@ void MainWindow::slotDownload(bool checked)
               [=](int exitCode, QProcess::ExitStatus exitStatus){
             QByteArray std_out_array = get_chapter_process->readAllStandardOutput();
             QByteArray std_err_array = get_chapter_process->readAllStandardError();
-            emit signalGetChapterResponseReceived(std_out_array, std_err_array);
+            emit signalGetChapterResponseReceived(task, std_out_array, std_err_array);
 //            qDebug()<<QString(std_err_array);
             get_chapter_process->deleteLater();
         });
@@ -172,4 +181,9 @@ void MainWindow::slotDownload(bool checked)
 
         qDebug()<<"[MainWindow::slotDownload] run task:"<<content_url;
     }));
+}
+
+void MainWindow::slotPauseDownload(bool checked)
+{
+    future_watcher_.setPaused(checked);
 }
