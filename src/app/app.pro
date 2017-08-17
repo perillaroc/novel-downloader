@@ -21,6 +21,8 @@ INCLUDEPATH += ../libs
 
 DESTDIR = $$build_bin_dir
 
+RC_ICONS = ./assert/icon/book.ico
+
 #LIBS += -L$$build_lib_dir -lprogress_util
 
 SOURCES += \
@@ -32,3 +34,6 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui
+
+RESOURCES += \
+    media.qrc

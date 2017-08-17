@@ -15,6 +15,7 @@ class MainWindow;
 struct DownloadTask{
     QString name_;
     QString link_;
+    QString directory_;
     int task_no_;
 };
 

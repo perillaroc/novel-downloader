@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assert/icon/book.ico</file>
+    </qresource>
+</RCC>

@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Novel Downloader</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="media.qrc">
+    <normaloff>:/assert/icon/book.ico</normaloff>:/assert/icon/book.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -135,6 +139,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="media.qrc"/>
+ </resources>
  <connections/>
 </ui>
