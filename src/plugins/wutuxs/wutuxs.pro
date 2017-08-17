@@ -1,4 +1,4 @@
-include (../../../novel_downloader.pri)
+include (../../../novel-downloader.pri)
 
 TEMPLATE=aux
 
