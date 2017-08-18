@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     qRegisterMetaType<DownloadTask>("DownloadTask");
 
-
     ui->setupUi(this);
 
     ui->novel_content_view->setModel(novel_content_model_);
@@ -27,7 +26,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->get_contents_button, &QPushButton::clicked, this, &MainWindow::slotGetContents);
     connect(ui->select_local_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectLocalDirectory);
     connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
+
     connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
+    connect(ui->action_exit, &QAction::triggered, [=](bool){
+        this->close();
+    });
+    connect(ui->action_about, &QAction::triggered, [=](bool){
+        QMessageBox::about(this, tr("Novel Downloader"), tr("Created by perillaroc."));
+    });
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
     connect(this, &MainWindow::signalGetChapterResponseReceived, this, &MainWindow::slotReceiveGetChapterResponse);
