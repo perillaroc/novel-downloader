@@ -10,6 +10,8 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QtConcurrent/QtConcurrent>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QtDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -28,12 +30,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
 
     connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
-    connect(ui->action_exit, &QAction::triggered, [=](bool){
-        this->close();
-    });
-    connect(ui->action_about, &QAction::triggered, [=](bool){
-        QMessageBox::about(this, tr("Novel Downloader"), tr("Created by perillaroc."));
-    });
+
+    setupActions();
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
     connect(this, &MainWindow::signalGetChapterResponseReceived, this, &MainWindow::slotReceiveGetChapterResponse);
@@ -211,4 +209,19 @@ void MainWindow::slotDownload(bool checked)
 void MainWindow::slotPauseDownload(bool checked)
 {
     future_watcher_.setPaused(checked);
+}
+
+void MainWindow::setupActions()
+{
+    connect(ui->action_exit, &QAction::triggered, [=](bool){
+        this->close();
+    });
+    connect(ui->action_about, &QAction::triggered, [=](bool){
+        QMessageBox::about(this, tr("Novel Downloader"), tr("Created by perillaroc."));
+    });
+
+    connect(ui->action_wutuxs_open_website, &QAction::triggered, [=](bool){
+         bool flag = QDesktopServices::openUrl(QUrl("http://www.wutuxs.com/"));
+         qDebug()<<"[MainWindow::action_wutuxs_open_website] open url:"<<flag;
+    });
 }

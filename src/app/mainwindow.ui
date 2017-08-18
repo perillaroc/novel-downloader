@@ -123,7 +123,20 @@
     </property>
     <addaction name="action_about"/>
    </widget>
+   <widget class="QMenu" name="menuPlugin">
+    <property name="title">
+     <string>Plugin</string>
+    </property>
+    <widget class="QMenu" name="menuwutuxs">
+     <property name="title">
+      <string>wutuxs</string>
+     </property>
+     <addaction name="action_wutuxs_open_website"/>
+    </widget>
+    <addaction name="menuwutuxs"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuPlugin"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -135,6 +148,11 @@
   <action name="action_about">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="action_wutuxs_open_website">
+   <property name="text">
+    <string>Open website</string>
    </property>
   </action>
  </widget>

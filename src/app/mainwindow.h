@@ -42,6 +42,8 @@ private slots:
     void slotPauseDownload(bool checked=true);
 
 private:
+    void setupActions();
+
     Ui::MainWindow *ui;
 
     QPointer<QStandardItemModel> novel_content_model_;
