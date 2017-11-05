@@ -96,11 +96,15 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
         QJsonObject an_entry = contents[i].toObject();
         QString name = an_entry["name"].toString();
         QString link = an_entry["link"].toString();
+        QStandardItem* name_item = new QStandardItem(name);
+        QStandardItem* link_item = new QStandardItem(link);
+        QStandardItem* status_item = new QStandardItem("Pause");
+        status_item->setData(QColor(Qt::gray) ,Qt::DecorationRole);
         root_item->appendRow(
                     QList<QStandardItem*>()
-                    <<new QStandardItem(name)
-                    <<new QStandardItem(link)
-                    <<new QStandardItem("Pause")
+                    <<name_item
+                    <<link_item
+                    <<status_item
                     );
     }
 
@@ -127,6 +131,7 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     {
         qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
         novel_content_model_->item(task.task_no_, 2)->setText("Error");
+        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
         return;
     }
 
@@ -135,6 +140,7 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     chapter_file.close();
 
     novel_content_model_->item(task.task_no_, 2)->setText("Complete");
+    novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
 
     //    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
 }
@@ -176,11 +182,13 @@ void MainWindow::slotDownload(bool checked)
         task.directory_ = local_directory;
         task.task_no_ = i;
         novel_content_model_->item(i, 2)->setText("Queue");
+        novel_content_model_->item(i, 2)->setData(QColor(Qt::blue) ,Qt::DecorationRole);
         download_tasks_.push_back(task);
     }
 
     future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
         novel_content_model_->item(task.task_no_, 2)->setText("Active");
+        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::green) ,Qt::DecorationRole);
         QString content_url = task.link_;
         QPointer<QProcess> get_chapter_process = new QProcess;
         QString program = python_bin_path_;
