@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 
 def get_novel_contents(url, proxy_config, socket_config) -> list:
     response = requests.get(url, proxies=proxy_config)
-    bs_object = BeautifulSoup(response.content, "html.parser")
+    bs_object = BeautifulSoup(response.content, "html.parser", from_encoding='gb18030')
 
     table_node = bs_object.select('dd > table')
     link_nodes = table_node[0].findAll('a')
@@ -20,8 +20,9 @@ def get_novel_contents(url, proxy_config, socket_config) -> list:
             continue
         href = a_link['href']
         link = urljoin(url, href)
+        name = str(a_link.string)
         contents.append({
-            'name': a_link.string,
+            'name': name,
             'link': link
         })
     return contents
@@ -29,7 +30,7 @@ def get_novel_contents(url, proxy_config, socket_config) -> list:
 
 def get_novel_chapter(url, proxy_config, socket_config):
     response = requests.get(url, proxies=proxy_config)
-    bs_object = BeautifulSoup(response.content, "html.parser")
+    bs_object = BeautifulSoup(response.content, "html.parser", from_encoding='gb18030')
 
     title_node = bs_object.select_one('#a_main h1')
 
@@ -94,7 +95,12 @@ socket config:
             }
         }
     }
-    print(json.dumps(result, indent=2))
+
+    # print utf-8 strings to std out.
+    import sys
+    sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
+    output = json.dumps(result, indent=2, ensure_ascii=False)
+    print(output)
 
 
 @cli.command('chapter')
@@ -135,7 +141,11 @@ socket config:
             }
         }
     }
-    print(json.dumps(result, indent=2))
+
+    # print utf-8 strings to std out.
+    import sys
+    sys.stdout = open(1, 'w', encoding='utf-8', closefd=False)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":

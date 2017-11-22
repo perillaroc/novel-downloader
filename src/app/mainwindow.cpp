@@ -80,6 +80,7 @@ void MainWindow::slotGetContents(bool checked)
 void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const QByteArray &std_err)
 {
     QJsonParseError json_parse_error;
+
     QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
 
     QJsonObject root = doc.object();
@@ -136,6 +137,7 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     }
 
     QTextStream out(&chapter_file);
+    out.setCodec("UTF-8");
     out << chapter;
     chapter_file.close();
 
@@ -213,7 +215,11 @@ void MainWindow::slotDownload(bool checked)
         QMessageBox::warning(this, tr("Warning"), tr("Couldn't open contents.json."));
         return;
     }
-    contents_file.write(contents_doc.toJson());
+    QByteArray contents_byte_array = contents_doc.toJson();
+
+    QTextStream contents_file_out(&contents_file);
+    contents_file_out.setCodec("UTF-8");
+    contents_file_out<<contents_byte_array;
     contents_file.close();
 
     future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
