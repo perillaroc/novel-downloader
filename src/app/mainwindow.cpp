@@ -173,6 +173,7 @@ void MainWindow::slotDownload(bool checked)
         return;
     }
 
+    // generate download task
     download_tasks_.clear();
     for(int i=0; i<novel_content_model_->rowCount(); i++)
     {
@@ -185,6 +186,35 @@ void MainWindow::slotDownload(bool checked)
         novel_content_model_->item(i, 2)->setData(QColor(Qt::blue) ,Qt::DecorationRole);
         download_tasks_.push_back(task);
     }
+
+
+    // create contents json file.
+    QJsonArray contents_list;
+    foreach(DownloadTask task, download_tasks_)
+    {
+        QJsonObject task_object;
+        task_object["name"] = task.name_;
+        task_object["link"] = task.link_;
+        QString link = task.link_;
+        QString file_name = link.mid(link.lastIndexOf('/')+1);
+
+        QFileInfo chapter_file_info(QDir(task.directory_), file_name);
+        task_object["file_path"] = chapter_file_info.absoluteFilePath();
+        contents_list.append(task_object);
+    }
+
+    QJsonObject contents_object;
+    contents_object["contents"] = contents_list;
+    QJsonDocument contents_doc;
+    contents_doc.setObject(contents_object);
+    QFileInfo contents_file_info(QDir(local_directory), "contents.json");
+    QFile contents_file(contents_file_info.absoluteFilePath());
+    if (!contents_file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, tr("Warning"), tr("Couldn't open contents.json."));
+        return;
+    }
+    contents_file.write(contents_doc.toJson());
+    contents_file.close();
 
     future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
         novel_content_model_->item(task.task_no_, 2)->setText("Active");
