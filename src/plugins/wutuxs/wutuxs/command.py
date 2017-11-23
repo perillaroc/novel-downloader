@@ -7,12 +7,16 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 
-def get_novel_contents(url, proxy_config, socket_config) -> list:
+def get_novel_contents_info(url, proxy_config, socket_config) -> dict:
     response = requests.get(url, proxies=proxy_config)
     bs_object = BeautifulSoup(response.content, "html.parser", from_encoding='gb18030')
 
     table_node = bs_object.select('dd > table')
     link_nodes = table_node[0].findAll('a')
+
+    title_div = bs_object.select_one('.btitle')
+    title_string = title_div.find('h1').string
+    author_string = str(title_div.find('i').string)[3:]
 
     contents = []
     for a_link in link_nodes:
@@ -25,7 +29,11 @@ def get_novel_contents(url, proxy_config, socket_config) -> list:
             'name': name,
             'link': link
         })
-    return contents
+    return {
+        'title': title_string,
+        'author': author_string,
+        'contents': contents
+    }
 
 
 def get_novel_chapter(url, proxy_config, socket_config):
@@ -80,7 +88,7 @@ socket config:
     """
     proxy_config_dict = json.loads(proxy_config)
     socket_config_dict = json.loads(socket_config)
-    novel_contents = get_novel_contents(url, proxy_config_dict, socket_config=socket_config_dict)
+    novel_contents_info = get_novel_contents_info(url, proxy_config_dict, socket_config=socket_config_dict)
     result = {
         'app': 'novel_downloader_command_tool',
         'type': 'command_result',
@@ -90,9 +98,7 @@ socket config:
                 'command': 'contents',
                 'url': url
             },
-            'response': {
-                'contents': novel_contents
-            }
+            'response': novel_contents_info
         }
     }
 
