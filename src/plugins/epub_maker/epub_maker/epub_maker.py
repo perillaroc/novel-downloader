@@ -25,6 +25,7 @@ def make(contents_file, output_file, title):
 
     contents = contents_doc['contents']
     chapter_list = []
+    toc_list = []
 
     for a_chapter in contents:
         name = a_chapter['name']
@@ -38,8 +39,9 @@ def make(contents_file, output_file, title):
 
         book.add_item(chapter)
         chapter_list.append(chapter)
+        toc_list.append(epub.Link(file_name, name, file_name))
 
-    book.toc = ((epub.Section('正文'), tuple(chapter_list),),)
+    book.toc = tuple(toc_list)
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
 
