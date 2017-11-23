@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>837</width>
-    <height>570</height>
+    <width>780</width>
+    <height>508</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,6 +91,38 @@
      </layout>
     </item>
     <item row="2" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Title</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="title_line_edit">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Author</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="author_line_edit">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="0">
      <widget class="QTableView" name="novel_content_view">
       <property name="editTriggers">
        <set>QAbstractItemView::NoEditTriggers</set>
@@ -107,8 +139,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>837</width>
-     <height>23</height>
+     <width>780</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -14,18 +14,19 @@ def cli():
 @cli.command("make")
 @click.option("--contents-file", required=True, help="contents file path")
 @click.option("--output-file", required=True, help="output file path")
-@click.option("--title", help="book title")
-def make(contents_file, output_file, title):
+def make(contents_file, output_file):
     f = open(contents_file, encoding='utf-8').read()
     contents_doc = json.loads(f)
 
-    book = epub.EpubBook()
-
-    book.set_title(title)
-
     contents = contents_doc['contents']
+    title = contents_doc['title']
+    author = contents_doc['author']
     chapter_list = []
     toc_list = []
+
+    book = epub.EpubBook()
+    book.set_title(title)
+    book.add_author(author)
 
     for a_chapter in contents:
         name = a_chapter['name']

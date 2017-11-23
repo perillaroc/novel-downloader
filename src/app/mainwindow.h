@@ -34,12 +34,13 @@ signals:
 private slots:
     void slotGetContents(bool checked=true);
     void slotReceiveGetGontentsResponse(const QByteArray &std_out, const QByteArray &std_err);
-    void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
     void slotSelectLocalDirectory(bool checked=true);
 
     void slotDownload(bool checked=true);
     void slotPauseDownload(bool checked=true);
+
+    void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
 private:
     void setupActions();

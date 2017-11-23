@@ -86,7 +86,12 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
     QJsonObject root = doc.object();
     QJsonObject data = root["data"].toObject();
     QJsonObject response = data["response"].toObject();
+    QString title = response["title"].toString();
+    QString author = response["author"].toString();
     QJsonArray contents = response["contents"].toArray();
+
+    ui->title_line_edit->setText(title);
+    ui->author_line_edit->setText(author);
 
     novel_content_model_->clear();
     novel_content_model_->setHorizontalHeaderLabels(QStringList()<<"Chapter"<<"List"<<"Status");
@@ -110,41 +115,6 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
     }
 
     ui->novel_content_view->resizeColumnsToContents();
-}
-
-void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err)
-{
-    QJsonParseError json_parse_error;
-    QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
-
-    QJsonObject root = doc.object();
-    QJsonObject data = root["data"].toObject();
-    QJsonObject response = data["response"].toObject();
-    QString chapter = response["chapter"].toString();
-
-    QString link = task.link_;
-    QString file_name = link.mid(link.lastIndexOf('/')+1);
-
-    QFileInfo chapter_file_info(QDir(task.directory_), file_name);
-
-    QFile chapter_file(chapter_file_info.absoluteFilePath());
-    if (!chapter_file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
-        novel_content_model_->item(task.task_no_, 2)->setText("Error");
-        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
-        return;
-    }
-
-    QTextStream out(&chapter_file);
-    out.setCodec("UTF-8");
-    out << chapter;
-    chapter_file.close();
-
-    novel_content_model_->item(task.task_no_, 2)->setText("Complete");
-    novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
-
-    //    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
 }
 
 void MainWindow::slotSelectLocalDirectory(bool checked)
@@ -207,6 +177,8 @@ void MainWindow::slotDownload(bool checked)
 
     QJsonObject contents_object;
     contents_object["contents"] = contents_list;
+    contents_object["title"] = ui->title_line_edit->text();
+    contents_object["author"] = ui->author_line_edit->text();
     QJsonDocument contents_doc;
     contents_doc.setObject(contents_object);
     QFileInfo contents_file_info(QDir(local_directory), "contents.json");
@@ -253,6 +225,41 @@ void MainWindow::slotDownload(bool checked)
 void MainWindow::slotPauseDownload(bool checked)
 {
     future_watcher_.setPaused(checked);
+}
+
+void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err)
+{
+    QJsonParseError json_parse_error;
+    QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
+
+    QJsonObject root = doc.object();
+    QJsonObject data = root["data"].toObject();
+    QJsonObject response = data["response"].toObject();
+    QString chapter = response["chapter"].toString();
+
+    QString link = task.link_;
+    QString file_name = link.mid(link.lastIndexOf('/')+1);
+
+    QFileInfo chapter_file_info(QDir(task.directory_), file_name);
+
+    QFile chapter_file(chapter_file_info.absoluteFilePath());
+    if (!chapter_file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
+        novel_content_model_->item(task.task_no_, 2)->setText("Error");
+        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
+        return;
+    }
+
+    QTextStream out(&chapter_file);
+    out.setCodec("UTF-8");
+    out << chapter;
+    chapter_file.close();
+
+    novel_content_model_->item(task.task_no_, 2)->setText("Complete");
+    novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
+
+    //    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
 }
 
 void MainWindow::setupActions()
