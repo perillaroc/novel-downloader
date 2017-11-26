@@ -43,6 +43,7 @@ private slots:
     void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
 private:
+    void setupButtons();
     void setupActions();
 
     Ui::MainWindow *ui;

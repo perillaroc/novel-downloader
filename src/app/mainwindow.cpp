@@ -25,12 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->novel_content_view->setModel(novel_content_model_);
 
-    connect(ui->get_contents_button, &QPushButton::clicked, this, &MainWindow::slotGetContents);
-    connect(ui->select_local_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectLocalDirectory);
-    connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
-
-    connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
-
+    setupButtons();
     setupActions();
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
@@ -54,22 +49,36 @@ void MainWindow::slotGetContents(bool checked)
     QString content_url = ui->content_url->text();
     if(content_url.isEmpty())
     {
-        QMessageBox::warning(this, "Warning", "content url must be set.");
+        QMessageBox::warning(this, tr("Warning"), tr("Novel's content url must be set."));
         return;
     }
+
+    QString selected_plugin_dir = plugin_dir_ + "/wutuxs";
+    QString plugin_command = "command.py";
 
     QPointer<QProcess> get_content_process = new QProcess{this};
     QString program = python_bin_path_;
     QStringList arguments;
-    arguments<<plugin_dir_ + "/wutuxs/command.py"
+    arguments<<selected_plugin_dir + "/" + plugin_command
             <<"contents"
            <<"--url=" + content_url;
 
     connect(get_content_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-            [=](int exitCode, QProcess::ExitStatus exitStatus){
+            [=](int exit_code, QProcess::ExitStatus exit_status){
         QByteArray std_out_array = get_content_process->readAllStandardOutput();
         QByteArray std_err_array = get_content_process->readAllStandardError();
-        emit signalGetContentsResponseReceived(std_out_array, std_err_array);
+        if(exit_status == QProcess::NormalExit)
+        {
+            emit signalGetContentsResponseReceived(std_out_array, std_err_array);
+        }
+        else
+        {
+            qWarning()<<"[MainWindow::slotGetContents] process exit abnormal."<<exit_code<<exit_status;
+            qDebug()<<"[MainWindow::slotGetContents] std out:\n"
+                    <<std_out_array;
+            qDebug()<<"[MainWindow::slotGetContents] std err out:\n"
+                    <<std_err_array;
+        }
         get_content_process->deleteLater();
     });
 
@@ -260,6 +269,14 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
 
     //    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
+}
+
+void MainWindow::setupButtons()
+{
+    connect(ui->get_contents_button, &QPushButton::clicked, this, &MainWindow::slotGetContents);
+    connect(ui->select_local_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectLocalDirectory);
+    connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
+    connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
 }
 
 void MainWindow::setupActions()
