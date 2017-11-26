@@ -36,11 +36,13 @@ private slots:
     void slotReceiveGetGontentsResponse(const QByteArray &std_out, const QByteArray &std_err);
 
     void slotSelectLocalDirectory(bool checked=true);
+    void slotSelectOutputDirectory(bool checked=true);
 
     void slotDownload(bool checked=true);
     void slotPauseDownload(bool checked=true);
-
     void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
+
+    void slotGenerateOutput(bool checked=true);
 
 private:
     void setupButtons();

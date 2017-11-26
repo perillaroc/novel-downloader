@@ -14,6 +14,8 @@
 #include <QUrl>
 #include <QtDebug>
 
+const QString BOOK_INFO_JSON_FILE_NAME{"book.json"};
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{parent},
     ui{new Ui::MainWindow},
@@ -92,6 +94,12 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
 
     QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
 
+    if(json_parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning()<<"[MainWindow::slotReceiveGetGontentsResponse] parse json string error:"<<json_parse_error.errorString();
+        return;
+    }
+
     QJsonObject root = doc.object();
     QJsonObject data = root["data"].toObject();
     QJsonObject response = data["response"].toObject();
@@ -103,7 +111,7 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
     ui->author_line_edit->setText(author);
 
     novel_content_model_->clear();
-    novel_content_model_->setHorizontalHeaderLabels(QStringList()<<"Chapter"<<"List"<<"Status");
+    novel_content_model_->setHorizontalHeaderLabels(QStringList()<<tr("Chapter")<<tr("List")<<tr("Status"));
     QStandardItem *root_item = novel_content_model_->invisibleRootItem();
 
     for(int i=0; i<contents.size(); i++)
@@ -113,14 +121,14 @@ void MainWindow::slotReceiveGetGontentsResponse(const QByteArray &std_out, const
         QString link = an_entry["link"].toString();
         QStandardItem* name_item = new QStandardItem(name);
         QStandardItem* link_item = new QStandardItem(link);
-        QStandardItem* status_item = new QStandardItem("Pause");
+        QStandardItem* status_item = new QStandardItem(tr("Pause"));
         status_item->setData(QColor(Qt::gray) ,Qt::DecorationRole);
         root_item->appendRow(
-                    QList<QStandardItem*>()
-                    <<name_item
-                    <<link_item
-                    <<status_item
-                    );
+            QList<QStandardItem*>()
+            <<name_item
+            <<link_item
+            <<status_item
+        );
     }
 
     ui->novel_content_view->resizeColumnsToContents();
@@ -135,6 +143,18 @@ void MainWindow::slotSelectLocalDirectory(bool checked)
     {
         dir_name = file_dialog.selectedFiles().first();
         ui->local_directory->setText(dir_name);
+    }
+}
+
+void MainWindow::slotSelectOutputDirectory(bool checked)
+{
+    QFileDialog file_dialog{this};
+    file_dialog.setFileMode(QFileDialog::Directory);
+    QString dir_name;
+    if (file_dialog.exec())
+    {
+        dir_name = file_dialog.selectedFiles().first();
+        ui->output_directory_line_edit->setText(dir_name);
     }
 }
 
@@ -184,13 +204,13 @@ void MainWindow::slotDownload(bool checked)
         contents_list.append(task_object);
     }
 
-    QJsonObject contents_object;
-    contents_object["contents"] = contents_list;
-    contents_object["title"] = ui->title_line_edit->text();
-    contents_object["author"] = ui->author_line_edit->text();
+    QJsonObject book_object;
+    book_object["contents"] = contents_list;
+    book_object["title"] = ui->title_line_edit->text();
+    book_object["author"] = ui->author_line_edit->text();
     QJsonDocument contents_doc;
-    contents_doc.setObject(contents_object);
-    QFileInfo contents_file_info(QDir(local_directory), "contents.json");
+    contents_doc.setObject(book_object);
+    QFileInfo contents_file_info(QDir(local_directory), BOOK_INFO_JSON_FILE_NAME);
     QFile contents_file(contents_file_info.absoluteFilePath());
     if (!contents_file.open(QIODevice::WriteOnly)) {
         QMessageBox::warning(this, tr("Warning"), tr("Couldn't open contents.json."));
@@ -203,23 +223,39 @@ void MainWindow::slotDownload(bool checked)
     contents_file_out<<contents_byte_array;
     contents_file.close();
 
+    // start download.
     future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
-        novel_content_model_->item(task.task_no_, 2)->setText("Active");
+        novel_content_model_->item(task.task_no_, 2)->setText(tr("Active"));
         novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::green) ,Qt::DecorationRole);
         QString content_url = task.link_;
         QPointer<QProcess> get_chapter_process = new QProcess;
         QString program = python_bin_path_;
+
+        QString selected_plugin_dir = plugin_dir_ + "/wutuxs";
+        QString plugin_command = "command.py";
+
         QStringList arguments;
-        arguments<<plugin_dir_ + "/wutuxs/command.py"
+        arguments<<selected_plugin_dir + "/" + plugin_command
                 <<"chapter"
                <<"--url=" + content_url;
 
         connect(get_chapter_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                [=](int exitCode, QProcess::ExitStatus exitStatus){
+                [=](int exit_code, QProcess::ExitStatus exit_status){
             QByteArray std_out_array = get_chapter_process->readAllStandardOutput();
             QByteArray std_err_array = get_chapter_process->readAllStandardError();
-            emit signalGetChapterResponseReceived(task, std_out_array, std_err_array);
-            //            qDebug()<<QString(std_err_array);
+
+            if(exit_status == QProcess::NormalExit)
+            {
+                emit signalGetChapterResponseReceived(task, std_out_array, std_err_array);
+            }
+            else
+            {
+                qWarning()<<"[MainWindow::slotDownload] process exit abnormal."<<exit_code<<exit_status;
+                qDebug()<<"[MainWindow::slotDownload] std out:\n"
+                        <<std_out_array;
+                qDebug()<<"[MainWindow::slotDownload] std err out:\n"
+                        <<std_err_array;
+            }
             get_chapter_process->deleteLater();
         });
 
@@ -241,6 +277,12 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     QJsonParseError json_parse_error;
     QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
 
+    if(json_parse_error.error != QJsonParseError::NoError)
+    {
+        qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] parse json string error:"<<json_parse_error.errorString();
+        return;
+    }
+
     QJsonObject root = doc.object();
     QJsonObject data = root["data"].toObject();
     QJsonObject response = data["response"].toObject();
@@ -255,7 +297,7 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     if (!chapter_file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
-        novel_content_model_->item(task.task_no_, 2)->setText("Error");
+        novel_content_model_->item(task.task_no_, 2)->setText(tr("Error"));
         novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
         return;
     }
@@ -265,10 +307,51 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     out << chapter;
     chapter_file.close();
 
-    novel_content_model_->item(task.task_no_, 2)->setText("Complete");
+    novel_content_model_->item(task.task_no_, 2)->setText(tr("Complete"));
     novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
+}
 
-    //    qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] chapter:"<<chapter;
+void MainWindow::slotGenerateOutput(bool checked)
+{
+    QString output_directory = ui->output_directory_line_edit->text();
+    if(output_directory.isEmpty())
+    {
+        QMessageBox::warning(this, tr("Warning"), tr("Please select a output directory."));
+        return;
+    }
+
+    QString  output_file_name = ui->output_file_name_line_edit->text();
+    if(output_file_name.isEmpty())
+    {
+        QMessageBox::warning(this, tr("Warning"), tr("Please input a output file name."));
+        return;
+    }
+
+    QString local_directory = ui->local_directory->text();
+    QFileInfo contents_file_info(QDir(local_directory), BOOK_INFO_JSON_FILE_NAME);
+    QFileInfo output_file_info(QDir(output_directory), output_file_name);
+
+    QString current_plugin_dir = plugin_dir_ + "/epub_maker";
+    QString plugin_command = "epub_maker.py";
+
+    QPointer<QProcess> get_content_process = new QProcess{this};
+    QString program = python_bin_path_;
+    QStringList arguments;
+    arguments<<current_plugin_dir + "/" + plugin_command
+            <<"make"
+            <<"--contents-file=" + contents_file_info.absoluteFilePath()
+            <<"--output-file=" + output_file_info.absoluteFilePath();
+
+    connect(get_content_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+            [=](int exit_code, QProcess::ExitStatus exit_status){
+        QByteArray std_out_array = get_content_process->readAllStandardOutput();
+        QByteArray std_err_array = get_content_process->readAllStandardError();
+        qDebug()<<std_out_array;
+        qDebug()<<std_err_array;
+        get_content_process->deleteLater();
+    });
+
+    get_content_process->start(program, arguments);
 }
 
 void MainWindow::setupButtons()
@@ -277,6 +360,9 @@ void MainWindow::setupButtons()
     connect(ui->select_local_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectLocalDirectory);
     connect(ui->download_button, &QPushButton::clicked, this, &MainWindow::slotDownload);
     connect(ui->pause_button, &QPushButton::toggled, this, &MainWindow::slotPauseDownload);
+
+    connect(ui->select_output_direcotry_button, &QPushButton::clicked, this, &MainWindow::slotSelectOutputDirectory);
+    connect(ui->output_generate_button, &QPushButton::clicked, this, &MainWindow::slotGenerateOutput);
 }
 
 void MainWindow::setupActions()
