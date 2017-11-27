@@ -48,6 +48,8 @@ private:
     void setupButtons();
     void setupActions();
 
+    QString detectPlugin(const QString &url) const;
+
     Ui::MainWindow *ui;
 
     QPointer<QStandardItemModel> novel_content_model_;

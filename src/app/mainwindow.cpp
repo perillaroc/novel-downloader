@@ -55,13 +55,21 @@ void MainWindow::slotGetContents(bool checked)
         return;
     }
 
-    QString selected_plugin_dir = plugin_dir_ + "/wutuxs";
+    QString detected_plugin_name;
+    detected_plugin_name = detectPlugin(content_url);
+    if(detected_plugin_name.isEmpty())
+    {
+        qWarning()<<"[MainWindow::slotGetContents] can't find plugin for url:"<<content_url;
+        return;
+    }
+
+    QString plugin_dir = plugin_dir_ + "/" + detected_plugin_name;
     QString plugin_command = "command.py";
 
     QPointer<QProcess> get_content_process = new QProcess{this};
     QString program = python_bin_path_;
     QStringList arguments;
-    arguments<<selected_plugin_dir + "/" + plugin_command
+    arguments<<plugin_dir + "/" + plugin_command
             <<"contents"
            <<"--url=" + content_url;
 
@@ -161,10 +169,16 @@ void MainWindow::slotSelectOutputDirectory(bool checked)
 
 void MainWindow::slotDownload(bool checked)
 {
-    QString local_directory = ui->local_directory->text();
+    auto local_directory = ui->local_directory->text();
     if(local_directory.isEmpty())
     {
         QMessageBox::warning(this, tr("Warning"), tr("Please select a local directory."));
+        return;
+    }
+    QDir local_directory_object{local_directory};
+    if(!local_directory_object.mkpath(local_directory))
+    {
+        QMessageBox::warning(this, tr("Warning"), tr("Can't create direcotry:") + local_directory);
         return;
     }
 
@@ -184,7 +198,7 @@ void MainWindow::slotDownload(bool checked)
         task.directory_ = local_directory;
         task.task_no_ = i;
         novel_content_model_->item(i, 2)->setText("Queue");
-        novel_content_model_->item(i, 2)->setData(QColor(Qt::blue) ,Qt::DecorationRole);
+        novel_content_model_->item(i, 2)->setData(QColor(Qt::blue), Qt::DecorationRole);
         download_tasks_.push_back(task);
     }
 
@@ -210,18 +224,19 @@ void MainWindow::slotDownload(bool checked)
     book_object["author"] = ui->author_line_edit->text();
     QJsonDocument contents_doc;
     contents_doc.setObject(book_object);
-    QFileInfo contents_file_info(QDir(local_directory), BOOK_INFO_JSON_FILE_NAME);
-    QFile contents_file(contents_file_info.absoluteFilePath());
+    QFileInfo contents_file_info{QDir(local_directory), BOOK_INFO_JSON_FILE_NAME};
+    QFile contents_file{contents_file_info.absoluteFilePath()};
     if (!contents_file.open(QIODevice::WriteOnly)) {
         QMessageBox::warning(this, tr("Warning"), tr("Couldn't open contents.json."));
         return;
     }
     QByteArray contents_byte_array = contents_doc.toJson();
 
-    QTextStream contents_file_out(&contents_file);
+    QTextStream contents_file_out{&contents_file};
     contents_file_out.setCodec("UTF-8");
     contents_file_out<<contents_byte_array;
     contents_file.close();
+
 
     // start download.
     future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
@@ -231,16 +246,25 @@ void MainWindow::slotDownload(bool checked)
         QPointer<QProcess> get_chapter_process = new QProcess;
         QString program = python_bin_path_;
 
-        QString selected_plugin_dir = plugin_dir_ + "/wutuxs";
+        QString detected_plugin_name;
+        detected_plugin_name = detectPlugin(content_url);
+        if(detected_plugin_name.isEmpty())
+        {
+            qWarning()<<"[MainWindow::slotDownload] can't find plugin for url:"<<content_url;
+            return;
+        }
+
+        QString plugin_dir = plugin_dir_ + "/" + detected_plugin_name;
         QString plugin_command = "command.py";
 
+
         QStringList arguments;
-        arguments<<selected_plugin_dir + "/" + plugin_command
-                <<"chapter"
-               <<"--url=" + content_url;
+        arguments<<plugin_dir + "/" + plugin_command
+                 <<"chapter"
+                 <<"--url=" + content_url;
 
         connect(get_chapter_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                [=](int exit_code, QProcess::ExitStatus exit_status){
+                [this, &task, &get_chapter_process](int exit_code, QProcess::ExitStatus exit_status){
             QByteArray std_out_array = get_chapter_process->readAllStandardOutput();
             QByteArray std_err_array = get_chapter_process->readAllStandardError();
 
@@ -280,6 +304,7 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     if(json_parse_error.error != QJsonParseError::NoError)
     {
         qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] parse json string error:"<<json_parse_error.errorString();
+        qDebug()<<"[MainWindow::slotReceiveGetChapterResponse] std err out:\n"<<std_err;
         return;
     }
 
@@ -378,4 +403,17 @@ void MainWindow::setupActions()
          bool flag = QDesktopServices::openUrl(QUrl("http://www.wutuxs.com/"));
          qDebug()<<"[MainWindow::action_wutuxs_open_website] open url:"<<flag;
     });
+}
+
+QString MainWindow::detectPlugin(const QString &url) const
+{
+    if(url.contains("www.wutuxs.com"))
+    {
+        return "wutuxs";
+    }
+    if(url.contains("www.qu.la"))
+    {
+        return "biquge";
+    }
+    return QString();
 }
