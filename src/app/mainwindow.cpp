@@ -373,6 +373,11 @@ void MainWindow::slotGenerateOutput(bool checked)
         QByteArray std_err_array = get_content_process->readAllStandardError();
         qDebug()<<std_out_array;
         qDebug()<<std_err_array;
+        if(exit_status == QProcess::NormalExit)
+        {
+            QMessageBox::information(this, tr("Output"), tr("Book is generated."));
+        }
+
         get_content_process->deleteLater();
     });
 
