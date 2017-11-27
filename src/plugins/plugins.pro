@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    epub_maker \
     wutuxs \
-    epub_maker
+    biquge
