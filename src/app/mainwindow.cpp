@@ -416,6 +416,10 @@ QString MainWindow::detectPlugin(const QString &url) const
     {
         return "wutuxs";
     }
+    if(url.contains("www.yunlaige.com"))
+    {
+        return "yunlaige";
+    }
     if(url.contains("www.qu.la"))
     {
         return "biquge";
