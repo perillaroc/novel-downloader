@@ -15,7 +15,7 @@ def get_novel_contents_info(url, proxy_config, socket_config) -> dict:
     link_nodes = content_container_node.findAll('a')
 
     title_div = bs_object.select_one('.title')
-    title_string = title_div.find('h1').string
+    title_string = title_div.find('h1').string[:-4]
     author_string = str(title_div.find('span').string)[3:]
 
     contents = []
@@ -32,7 +32,8 @@ def get_novel_contents_info(url, proxy_config, socket_config) -> dict:
     return {
         'title': title_string,
         'author': author_string,
-        'contents': contents
+        'contents': contents,
+        'content_url': url
     }
 
 

@@ -32,7 +32,8 @@ def get_novel_contents_info(url, proxy_config, socket_config) -> dict:
     return {
         'title': title_string,
         'author': author_string,
-        'contents': contents
+        'contents': contents,
+        'content_url': url
     }
 
 
