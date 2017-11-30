@@ -1,0 +1,17 @@
+{
+  "name": "yunlaige",
+  "version": "0.0.1",
+  "author": "perillaroc",
+  "description": "yunlaige",
+  "category": "py/novel_website",
+  "main": "yunlaige/command.py",
+  "contributes": {
+    "website_matcher": {
+      "pattern": [
+        {
+          "regexp": "www\\.yunlaige\\.com"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "epub_maker",
+  "version": "0.0.1",
+  "author": "perillaroc",
+  "description": "epub_maker",
+  "category": "py/book_output",
+  "main": "epub_maker/epub_maker.py"
+}

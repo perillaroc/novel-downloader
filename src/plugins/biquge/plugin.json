@@ -1,0 +1,17 @@
+{
+  "name": "biquge",
+  "version": "0.0.1",
+  "author": "perillaroc",
+  "description": "biquge",
+  "category": "py/novel_website",
+  "main": "biquge/command.py",
+  "contributes": {
+    "website_matcher": {
+      "pattern": [
+        {
+          "regexp": "www\\.biquge\\.com"
+        }
+      ]
+    }
+  }
+}

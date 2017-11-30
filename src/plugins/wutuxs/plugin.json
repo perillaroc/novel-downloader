@@ -1,0 +1,17 @@
+{
+  "name": "wutuxs",
+  "version": "0.0.1",
+  "author": "perillaroc",
+  "description": "wutuxs",
+  "category": "py/novel_website",
+  "main": "wutuxs/command.py",
+  "contributes": {
+    "website_matcher": {
+      "pattern": [
+        {
+          "regexp": "www\\.wutuxs\\.com"
+        }
+      ]
+    }
+  }
+}
