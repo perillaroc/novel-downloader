@@ -17,4 +17,5 @@ PRE_TARGETDEPS += foo
 
 DISTFILES += \
     yunlaige/__init__.py \
-    yunlaige/command.py
+    yunlaige/command.py \
+    plugin.json

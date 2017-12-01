@@ -17,4 +17,5 @@ PRE_TARGETDEPS += foo
 
 DISTFILES += \
     wutuxs/__init__.py \
-    wutuxs/command.py
+    wutuxs/command.py \
+    plugin.json
