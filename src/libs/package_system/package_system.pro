@@ -1,12 +1,20 @@
-include(../../novel-downloader.pri)
+include(../../../novel-downloader.pri)
+QT += widgets
 
-QT       += core gui widgets concurrent
+DEFINES += PACKAGE_SYSTEM_LIBRARY
 
-TARGET = novel_downloader
-TEMPLATE = app
+TARGET = package_system
+TEMPLATE = lib
+CONFIG += shared dll
+
+DLLDESTDIR = $$build_bin_dir
+
+win32{
+    DESTDIR = $$build_base_dir/lib
+}
 
 # The following define makes your compiler emit warnings if you use
-# any feature of Qt which as been marked as deprecated (the exact warnings
+# any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
@@ -16,25 +24,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-
-INCLUDEPATH += ../libs
-LIBS +=  -L$$build_lib_dir -lpackage_system
-
-DESTDIR = $$build_bin_dir
-
-RC_ICONS = ./assert/icon/book.ico
-
-#LIBS += -L$$build_lib_dir -lprogress_util
-
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+        package_manager.cpp \
+    package_spec.cpp \
+    package_interface.cpp
 
 HEADERS += \
-        mainwindow.h
-
-FORMS += \
-        mainwindow.ui
-
-RESOURCES += \
-    media.qrc
+        package_manager.h \
+    package_system_global.h \
+    package_spec.h \
+    package_interface.h
