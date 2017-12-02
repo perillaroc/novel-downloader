@@ -18,7 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 INCLUDEPATH += ../libs
-LIBS +=  -L$$build_lib_dir -lpackage_system
+LIBS +=  -L$${build_base_dir}/lib -lpackage_system
 
 DESTDIR = $$build_bin_dir
 

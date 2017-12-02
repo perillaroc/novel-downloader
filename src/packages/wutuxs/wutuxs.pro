@@ -2,9 +2,9 @@ include (../../../novel-downloader.pri)
 
 TEMPLATE=aux
 
-plugin_name = epub_maker
+plugin_name = wutuxs
 
-build_dir = $${build_plugins_dir}/$${plugin_name}
+build_dir = $${build_packages_dir}/$${plugin_name}
 build_dir~=s,/,\\,g
 
 plugin_dir = $$PWD
@@ -16,6 +16,6 @@ QMAKE_EXTRA_TARGETS += foo
 PRE_TARGETDEPS += foo
 
 DISTFILES += \
-    epub_maker/__init__.py \
-    epub_maker/epub_maker.py \
+    wutuxs/__init__.py \
+    wutuxs/command.py \
     package.json

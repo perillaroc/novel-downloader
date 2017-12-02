@@ -56,7 +56,7 @@ private:
 
     QString python_env_dir_;
     QString python_bin_path_;
-    QString plugin_dir_;
+    QString packages_dir_;
 
     QVector<DownloadTask> download_tasks_;
     QFutureWatcher<void> future_watcher_;

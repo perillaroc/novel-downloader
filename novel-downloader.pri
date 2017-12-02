@@ -9,5 +9,5 @@ build_dist_dir = $$build_base_dir/dist
 
 build_bin_dir = $$build_dist_dir/bin
 build_lib_dir = $$build_dist_dir/lib
-build_plugins_dir = $$build_dist_dir/plugins
+build_packages_dir = $$build_dist_dir/packages
 build_vendor_dir = $$build_dist_dir/vendor

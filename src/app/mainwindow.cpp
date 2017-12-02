@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString app_dir = QApplication::applicationDirPath();
     python_env_dir_ = app_dir + "/../vendor/python_env";
     python_bin_path_ = python_env_dir_ + "/python.exe";
-    plugin_dir_ = app_dir + "/../plugins";
+    packages_dir_ = app_dir + "/../packages";
 
     return;
 }
@@ -63,7 +63,7 @@ void MainWindow::slotGetContents(bool checked)
         return;
     }
 
-    QString plugin_dir = plugin_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
+    QString plugin_dir = packages_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
     QString plugin_command = "command.py";
 
     QPointer<QProcess> get_content_process = new QProcess{this};
@@ -254,7 +254,7 @@ void MainWindow::slotDownload(bool checked)
             return;
         }
 
-        QString plugin_dir = plugin_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
+        QString plugin_dir = packages_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
         QString plugin_command = "command.py";
 
 
@@ -356,7 +356,7 @@ void MainWindow::slotGenerateOutput(bool checked)
     QFileInfo contents_file_info(QDir(local_directory), BOOK_INFO_JSON_FILE_NAME);
     QFileInfo output_file_info(QDir(output_directory), output_file_name);
 
-    QString current_plugin_dir = plugin_dir_ + "/epub_maker/epub_maker";
+    QString current_plugin_dir = packages_dir_ + "/epub_maker/epub_maker";
     QString plugin_command = "epub_maker.py";
 
     QPointer<QProcess> get_content_process = new QProcess{this};

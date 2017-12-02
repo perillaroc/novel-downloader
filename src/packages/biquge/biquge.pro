@@ -2,9 +2,9 @@ include (../../../novel-downloader.pri)
 
 TEMPLATE=aux
 
-plugin_name = yunlaige
+plugin_name = biquge
 
-build_dir = $${build_plugins_dir}/$${plugin_name}
+build_dir = $${build_packages_dir}/$${plugin_name}
 build_dir~=s,/,\\,g
 
 plugin_dir = $$PWD
@@ -16,6 +16,6 @@ QMAKE_EXTRA_TARGETS += foo
 PRE_TARGETDEPS += foo
 
 DISTFILES += \
-    yunlaige/__init__.py \
-    yunlaige/command.py \
+    biquge/__init__.py \
+    biquge/command.py \
     package.json
