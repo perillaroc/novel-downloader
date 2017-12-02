@@ -18,4 +18,4 @@ PRE_TARGETDEPS += foo
 DISTFILES += \
     biquge/__init__.py \
     biquge/command.py \
-    plugin.json
+    package.json

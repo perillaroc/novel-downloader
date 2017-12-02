@@ -18,4 +18,4 @@ PRE_TARGETDEPS += foo
 DISTFILES += \
     epub_maker/__init__.py \
     epub_maker/epub_maker.py \
-    plugin.json
+    package.json
