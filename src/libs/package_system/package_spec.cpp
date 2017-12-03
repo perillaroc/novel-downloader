@@ -25,21 +25,32 @@ PackageSpec::~PackageSpec()
 
 bool PackageSpec::read(const QString &file_path)
 {
-//    QFileInfo file_info(file_path);
-//    file_location_ = file_info.absolutePath();
-//    file_path_ = file_info.absoluteFilePath();
+    QFileInfo file_info(file_path);
+    file_location_ = file_info.absolutePath();
+    file_path_ = file_info.absoluteFilePath();
 
-//    if(!file_info.exists())
-//    {
-//        qDebug()<<"[PluginSpec::read] plugin file doesn't exist:"<<file_path;
-//        return false;
-//    }
+    if(!file_info.exists())
+    {
+        qDebug()<<"[PluginSpec::read] plugin file doesn't exist:"<<file_path;
+        return false;
+    }
 
-//    if(!readPackageJson(loader_.metaData()))
-//    {
-//        qDebug()<<"[PluginSpec::read] failed read meta data:"<<loader_.metaData();
-//        return false;
-//    }
+    QFile package_file{file_path};
+    if (!package_file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qWarning("[PluginSpec::read] Couldn't open package json file.");
+        return false;
+    }
+    QByteArray file_content = package_file.readAll();
+    QJsonDocument package_json_doc = QJsonDocument::fromJson(file_content);
+
+    package_json_object_ = package_json_doc.object();
+
+    if(!readPackageJson(package_json_object_))
+    {
+        qDebug()<<"[PluginSpec::read] failed read package json.";
+        return false;
+    }
 
     return true;
 }
@@ -99,55 +110,25 @@ bool PackageSpec::pluginsInitialized()
 
 bool PackageSpec::readPackageJson(const QJsonObject &package_json)
 {
-//    qDebug()<<"[PluginSpec::readMetaData]";
-//    qDebug(QJsonDocument(package_json).toJson(QJsonDocument::Indented));
-//    QJsonValue value;
+    qDebug()<<"[PluginSpec::readPackageJson]";
+    qDebug(QJsonDocument(package_json).toJson(QJsonDocument::Indented));
+    QJsonValue value;
 
-//    value = package_json.value(QLatin1String("MetaData"));
-//    if(!value.isObject())
-//    {
-//        qDebug()<<"[PluginSpec::readMetaData] Plugin MetaData not found.";
-//        return false;
-//    }
-//    QJsonObject plugin_meta_data = value.toObject();
+    value = package_json.value(QLatin1String("name"));
+    if(!value.isString())
+    {
+        qDebug()<<"[PluginSpec::readPackageJson] package name not found.";
+        return false;
+    }
+    name_ = value.toString();
 
-//    value = plugin_meta_data.value(QLatin1String("name"));
-//    if(value.isUndefined() || !value.isString())
-//    {
-//        qDebug()<<"[PluginSpec::readMetaData] name has error.";
-//        return false;
-//    }
-//    name_ = value.toString();
-
-//    value = plugin_meta_data.value(QLatin1String("dependencies"));
-//    if(value.isUndefined() || !value.isArray())
-//    {
-//        qDebug()<<"[PluginSpec::readMetaData] dependencies has error.";
-//        return false;
-//    }
-//    {
-//        QJsonArray array = value.toArray();
-//        foreach (const QJsonValue &v, array)
-//        {
-//            if (!v.isObject())
-//            {
-//                qDebug()<<"[PluginSpec::readMetaData] a dependency entry is not object.";
-//                return false;
-//            }
-//            QJsonObject dependency_object = v.toObject();
-//            PackageDependency dep;
-
-//            value = dependency_object.value(QLatin1Literal("name"));
-//            if(value.isUndefined() || !value.isString())
-//            {
-//                qDebug()<<"[PluginSpec::readMetaData] a dependency entry's name has an error.";
-//                return false;
-//            }
-//            dep.name_ = value.toString();
-
-//            dependency_list_.append(dep);
-//        }
-//    }
+    value = package_json.value(QLatin1String("category"));
+    if(!value.isString())
+    {
+        qDebug()<<"[PluginSpec::readPackageJson] category not found.";
+        return false;
+    }
+    category_ = value.toString();
 
     return true;
 }

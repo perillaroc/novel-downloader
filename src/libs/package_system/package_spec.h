@@ -9,6 +9,7 @@
 namespace PackageSystem{
 
 class PackageInterface;
+class PackageManager;
 
 class PACKAGE_SYSTEM_EXPORT PackageSpec
 {
@@ -37,6 +38,8 @@ private:
     bool readPackageJson(const QJsonObject &package_json);
 
     QString name_;
+    QString category_;
+    QJsonObject package_json_object_;
 
     // file
     QString file_location_;

@@ -8,6 +8,11 @@ QT_BEGIN_NAMESPACE
 class QStandardItemModel;
 QT_END_NAMESPACE
 
+
+namespace PackageSystem{
+class PackageManager;
+}
+
 namespace Ui {
 class MainWindow;
 }
@@ -26,6 +31,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+    void setPackageManager(QPointer<PackageSystem::PackageManager> package_manager);
 
 signals:
     void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
@@ -51,6 +58,8 @@ private:
     QString detectPlugin(const QString &url) const;
 
     Ui::MainWindow *ui;
+
+    QPointer<PackageSystem::PackageManager> package_manager_;
 
     QPointer<QStandardItemModel> novel_content_model_;
 

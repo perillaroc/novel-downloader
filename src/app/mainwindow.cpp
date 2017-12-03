@@ -46,6 +46,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setPackageManager(QPointer<PackageSystem::PackageManager> package_manager)
+{
+    package_manager_ = package_manager;
+}
+
 void MainWindow::slotGetContents(bool checked)
 {
     QString content_url = ui->content_url->text();

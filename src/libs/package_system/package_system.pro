@@ -27,10 +27,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         package_manager.cpp \
     package_spec.cpp \
-    package_interface.cpp
+    package_interface.cpp \
+    novel_website_package.cpp
 
 HEADERS += \
         package_manager.h \
     package_system_global.h \
     package_spec.h \
-    package_interface.h
+    package_interface.h \
+    novel_website_package.h
