@@ -11,6 +11,7 @@ QT_END_NAMESPACE
 
 namespace PackageSystem{
 class PackageManager;
+class NovelWebsitePackage;
 }
 
 namespace Ui {
@@ -55,7 +56,7 @@ private:
     void setupButtons();
     void setupActions();
 
-    QString detectPlugin(const QString &url) const;
+    PackageSystem::NovelWebsitePackage *detectNovelWebsitePackage(const QString &url) const;
 
     Ui::MainWindow *ui;
 

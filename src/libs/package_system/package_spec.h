@@ -14,7 +14,7 @@ class PackageManager;
 class PACKAGE_SYSTEM_EXPORT PackageSpec
 {
 public:
-    explicit PackageSpec();
+    explicit PackageSpec(QPointer<PackageManager> package_manager);
 
     ~PackageSpec();
 
@@ -23,7 +23,12 @@ public:
     QString name() const;
     void setName(const QString &name);
 
+    QString fileLocation() const;
+
     PackageInterface *plugin();
+
+    void addObject(QObject *obj);
+    void removeObject(QObject *obj);
 
     // Step 1. load
     bool loadLibrary();
@@ -45,8 +50,11 @@ private:
     QString file_location_;
     QString file_path_;
 
-    // qt plugin
-    QPointer<PackageInterface> plugin_;
+    // plugin
+    QPointer<PackageInterface> package_;
+
+    // package manager
+    QPointer<PackageManager> package_manager_;
 };
 
 }

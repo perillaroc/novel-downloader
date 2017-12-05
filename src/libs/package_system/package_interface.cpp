@@ -4,9 +4,10 @@
 
 using namespace PackageSystem;
 
-PackageInterface::PackageInterface(QObject *parent) :
+PackageInterface::PackageInterface(QPointer<PackageManager> package_manager, QObject *parent) :
     QObject{parent},
-    plugin_spec_{nullptr}
+    package_spec_{nullptr},
+    package_manager_{package_manager}
 {
 
 }
@@ -16,17 +17,7 @@ PackageInterface::~PackageInterface()
 
 }
 
-QSharedPointer<PackageSpec> PackageInterface::pluginSpec()
+QSharedPointer<PackageSpec> PackageInterface::packageSpec()
 {
-    return plugin_spec_;
-}
-
-void PackageInterface::addObject(QObject *obj)
-{
-    //PackageManager::addObject(obj);
-}
-
-void PackageInterface::removeObject(QObject *obj)
-{
-    //PackageManager::removeObject(obj);
+    return package_spec_;
 }

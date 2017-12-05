@@ -49,6 +49,21 @@ void PackageManager::loadPackages()
     }
 }
 
+void PackageManager::addObject(QObject *obj)
+{
+    all_objects_.append(obj);
+}
+
+void PackageManager::removeObject(QObject *obj)
+{
+    all_objects_.removeAll(obj);
+}
+
+QList<QObject *> PackageManager::allObjects()
+{
+    return all_objects_;
+}
+
 void PackageManager::readPackagePaths()
 {
     QStringList package_json_files;
@@ -77,7 +92,7 @@ void PackageManager::readPackagePaths()
 
     foreach(QString package_file_path, package_json_files)
     {
-        QSharedPointer<PackageSpec> spec{new PackageSpec};
+        QSharedPointer<PackageSpec> spec{new PackageSpec{this}};
         if(!spec->read(package_file_path))
         {
             qDebug()<<"[PackageManager::loadPackages] can't read package spec"<<package_file_path;

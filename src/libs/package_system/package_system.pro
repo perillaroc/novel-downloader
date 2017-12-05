@@ -28,11 +28,13 @@ SOURCES += \
         package_manager.cpp \
     package_spec.cpp \
     package_interface.cpp \
-    novel_website_package.cpp
+    novel_website_package.cpp \
+    novel_output_package.cpp
 
 HEADERS += \
         package_manager.h \
     package_system_global.h \
     package_spec.h \
     package_interface.h \
-    novel_website_package.h
+    novel_website_package.h \
+    novel_output_package.h

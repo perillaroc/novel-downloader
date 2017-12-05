@@ -1,5 +1,9 @@
 #include "package_spec.h"
 #include "package_interface.h"
+#include "package_manager.h"
+
+#include "novel_website_package.h"
+#include "novel_output_package.h"
 
 #include <QPluginLoader>
 #include <QFileInfo>
@@ -10,16 +14,17 @@
 using namespace PackageSystem;
 
 
-PackageSpec::PackageSpec():
-    plugin_()
+PackageSpec::PackageSpec(QPointer<PackageManager> package_manager):
+    package_{},
+    package_manager_{package_manager}
 {
 
 }
 
 PackageSpec::~PackageSpec()
 {
-    if(plugin_)
-        plugin_->deleteLater();
+    if(package_)
+        package_->deleteLater();
 }
 
 
@@ -65,9 +70,24 @@ void PackageSpec::setName(const QString &name)
     name_ = name;
 }
 
+QString PackageSpec::fileLocation() const
+{
+    return file_location_;
+}
+
 PackageInterface *PackageSpec::plugin()
 {
-    return plugin_;
+    return package_;
+}
+
+void PackageSpec::addObject(QObject *obj)
+{
+    package_manager_->addObject(obj);
+}
+
+void PackageSpec::removeObject(QObject *obj)
+{
+    package_manager_->removeObject(obj);
 }
 
 bool PackageSpec::loadLibrary()
@@ -88,6 +108,30 @@ bool PackageSpec::loadLibrary()
 //    }
 //    plugin_ = plugin_object;
 //    plugin_->plugin_spec_ = this;
+    if(category_ == "py/novel_website")
+    {
+        qDebug()<<"[PackageSpec::loadLibrary] create novel website package.";
+        QPointer<NovelWebsitePackage> package_object = new NovelWebsitePackage{package_manager_};
+        package_object->setPackageJsonObject(package_json_object_);
+
+        package_object->package_spec_ = QSharedPointer<PackageSpec>(this);
+        package_ = package_object;
+    }
+    else if(category_ == "py/book_output")
+    {
+        qDebug()<<"[PackageSpec::loadLibrary] create novel output package.";
+        QPointer<NovelOutputPackage> package_object = new NovelOutputPackage{package_manager_};
+        package_object->setPackageJsonObject(package_json_object_);
+
+        package_object->package_spec_ = QSharedPointer<PackageSpec>(this);
+        package_ = package_object;
+    }
+    else
+    {
+
+    }
+
+
     return true;
 }
 
@@ -95,7 +139,7 @@ bool PackageSpec::initializePlugin()
 {
     QStringList arguments;
     QString error_string;
-    if (!plugin_->initialize(arguments, &error_string)) {
+    if (!package_->initialize(arguments, &error_string)) {
         qDebug()<<"[PluginSpec::pluginsInitialized] failed: "<< error_string;
         return false;
     }
@@ -104,7 +148,7 @@ bool PackageSpec::initializePlugin()
 
 bool PackageSpec::pluginsInitialized()
 {
-    plugin_->pluginsInitialized();
+    package_->pluginsInitialized();
     return true;
 }
 

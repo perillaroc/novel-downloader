@@ -2,28 +2,34 @@
 
 #include "package_interface.h"
 
+#include <QDir>
+
 namespace PackageSystem{
 
 class PluginManager;
 
-class NovelWebsitePackage : public PackageInterface
+class PACKAGE_SYSTEM_EXPORT NovelWebsitePackage : public PackageInterface
 {
     Q_OBJECT
 public:
-    explicit NovelWebsitePackage(QObject *parent = nullptr);
-
-    void setPackageJsonObject(const QJsonObject &package_json_object);
+    explicit NovelWebsitePackage(QPointer<PackageManager> package_manager, QObject *parent = nullptr);
 
     virtual bool initialize(const QStringList& arguments, QString* error_string);
     virtual void pluginsInitialized();
     virtual void aboutToShutDown();
+
+    QDir getBaseDir() const;
+    QString getMainCommand() const;
+    QString getWebsiteMatcherPattern() const;
 
 signals:
 
 public slots:
 
 private:
-    QJsonObject package_json_object_;
+    QDir base_dir_;
+    QString main_;
+    QString website_matcher_pattern_;
 };
 
 }

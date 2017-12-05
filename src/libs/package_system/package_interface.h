@@ -5,35 +5,43 @@
 #include <QObject>
 #include <QString>
 #include <QPointer>
+#include <QJsonObject>
 
 namespace PackageSystem{
 
 class PackageSpec;
+class PackageManager;
 
 class PACKAGE_SYSTEM_EXPORT PackageInterface : public QObject
 {
     Q_OBJECT
 public:
-    explicit PackageInterface(QObject *parent = nullptr);
+    explicit PackageInterface(QPointer<PackageManager> package_manager, QObject *parent = nullptr);
     ~PackageInterface();
 
-    QSharedPointer<PackageSpec> pluginSpec();
+    void setPackageJsonObject(const QJsonObject &package_json_object)
+    {
+        package_json_object_ = package_json_object;
+    }
+
+    QSharedPointer<PackageSpec> packageSpec();
 
     virtual bool initialize(const QStringList& arguments, QString* error_string) = 0;
     virtual void pluginsInitialized() = 0;
     virtual void aboutToShutDown() = 0;
 
-    void addObject(QObject *obj);
-    void removeObject(QObject *obj);
-
 signals:
 
 public slots:
 
-private:
-    // only a reference, may be use another pointer class.
-    QSharedPointer<PackageSpec> plugin_spec_;
+protected:
+    QJsonObject package_json_object_;
 
+    // only a reference, may be use another pointer class.
+    QSharedPointer<PackageSpec> package_spec_;
+
+private:
+    QPointer<PackageManager> package_manager_;
     friend class PackageSpec;
 };
 

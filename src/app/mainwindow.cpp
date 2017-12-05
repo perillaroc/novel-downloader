@@ -12,7 +12,13 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QRegularExpression>
 #include <QtDebug>
+
+#include <package_system/novel_website_package.h>
+#include <package_system/package_manager.h>
+
+using namespace PackageSystem;
 
 const QString BOOK_INFO_JSON_FILE_NAME{"book.json"};
 
@@ -60,21 +66,18 @@ void MainWindow::slotGetContents(bool checked)
         return;
     }
 
-    QString detected_plugin_name;
-    detected_plugin_name = detectPlugin(content_url);
-    if(detected_plugin_name.isEmpty())
+    QPointer<NovelWebsitePackage> detected_package;
+    detected_package = detectNovelWebsitePackage(content_url);
+    if(detected_package.isNull())
     {
-        qWarning()<<"[MainWindow::slotGetContents] can't find plugin for url:"<<content_url;
+        qWarning()<<"[MainWindow::slotGetContents] can't find package for url:"<<content_url;
         return;
     }
-
-    QString plugin_dir = packages_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
-    QString plugin_command = "command.py";
 
     QPointer<QProcess> get_content_process = new QProcess{this};
     QString program = python_bin_path_;
     QStringList arguments;
-    arguments<<plugin_dir + "/" + plugin_command
+    arguments<<detected_package->getBaseDir().absoluteFilePath(detected_package->getMainCommand())
             <<"contents"
            <<"--url=" + content_url;
 
@@ -251,20 +254,16 @@ void MainWindow::slotDownload(bool checked)
         QPointer<QProcess> get_chapter_process = new QProcess;
         QString program = python_bin_path_;
 
-        QString detected_plugin_name;
-        detected_plugin_name = detectPlugin(content_url);
-        if(detected_plugin_name.isEmpty())
+        QPointer<NovelWebsitePackage> detected_package;
+        detected_package = detectNovelWebsitePackage(content_url);
+        if(detected_package.isNull())
         {
-            qWarning()<<"[MainWindow::slotDownload] can't find plugin for url:"<<content_url;
+            qWarning()<<"[MainWindow::slotDownload] can't find package for url:"<<content_url;
             return;
         }
 
-        QString plugin_dir = packages_dir_ + "/" + detected_plugin_name + "/" + detected_plugin_name;
-        QString plugin_command = "command.py";
-
-
         QStringList arguments;
-        arguments<<plugin_dir + "/" + plugin_command
+        arguments<<detected_package->getBaseDir().absoluteFilePath(detected_package->getMainCommand())
                  <<"chapter"
                  <<"--url=" + content_url;
 
@@ -415,19 +414,19 @@ void MainWindow::setupActions()
     });
 }
 
-QString MainWindow::detectPlugin(const QString &url) const
+NovelWebsitePackage* MainWindow::detectNovelWebsitePackage(const QString &url) const
 {
-    if(url.contains("www.wutuxs.com"))
+    QList<NovelWebsitePackage*> website_packages = package_manager_->getObjects<NovelWebsitePackage>();
+
+    foreach(NovelWebsitePackage *website_package, website_packages)
     {
-        return "wutuxs";
+        QString website_matcher_pattern = website_package->getWebsiteMatcherPattern();
+        QRegularExpression re(website_matcher_pattern);
+        QRegularExpressionMatch match = re.match(url);
+        if(match.hasMatch())
+        {
+            return website_package;
+        }
     }
-    if(url.contains("www.yunlaige.com"))
-    {
-        return "yunlaige";
-    }
-    if(url.contains("www.qu.la"))
-    {
-        return "biquge";
-    }
-    return QString();
+    return nullptr;
 }
