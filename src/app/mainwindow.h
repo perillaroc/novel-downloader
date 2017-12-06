@@ -12,6 +12,7 @@ QT_END_NAMESPACE
 namespace PackageSystem{
 class PackageManager;
 class NovelWebsitePackage;
+class NovelOutputPackage;
 }
 
 namespace Ui {
@@ -57,6 +58,8 @@ private:
     void setupActions();
 
     PackageSystem::NovelWebsitePackage *detectNovelWebsitePackage(const QString &url) const;
+    PackageSystem::NovelOutputPackage *detectNovelOutputPackage(const QString &book_type) const;
+
 
     Ui::MainWindow *ui;
 

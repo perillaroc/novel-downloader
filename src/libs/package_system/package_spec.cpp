@@ -92,22 +92,6 @@ void PackageSpec::removeObject(QObject *obj)
 
 bool PackageSpec::loadLibrary()
 {
-//    if(!loader_.load())
-//    {
-//        qDebug()<<"[PluginSpec::loadLibrary] Can't load plugin"<<name_;
-//        return false;
-//    }
-
-//    QObject *a = loader_.instance();
-//    PackageInterface *plugin_object = qobject_cast<PackageInterface*>(a);
-//    if (!plugin_object)
-//    {
-//        qDebug()<<"[PluginSpec::loadLibrary] Can't load IPlugin object in plugin"<< name_;
-//        loader_.unload();
-//        return false;
-//    }
-//    plugin_ = plugin_object;
-//    plugin_->plugin_spec_ = this;
     if(category_ == "py/novel_website")
     {
         qDebug()<<"[PackageSpec::loadLibrary] create novel website package.";

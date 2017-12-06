@@ -15,8 +15,9 @@
 #include <QRegularExpression>
 #include <QtDebug>
 
-#include <package_system/novel_website_package.h>
 #include <package_system/package_manager.h>
+#include <package_system/novel_website_package.h>
+#include <package_system/novel_output_package.h>
 
 using namespace PackageSystem;
 
@@ -356,17 +357,24 @@ void MainWindow::slotGenerateOutput(bool checked)
         return;
     }
 
+    QString book_type = ui->output_book_type_combo_box->currentText();
+
     QString local_directory = ui->local_directory->text();
     QFileInfo contents_file_info(QDir(local_directory), BOOK_INFO_JSON_FILE_NAME);
     QFileInfo output_file_info(QDir(output_directory), output_file_name);
 
-    QString current_plugin_dir = packages_dir_ + "/epub_maker/epub_maker";
-    QString plugin_command = "epub_maker.py";
+    QPointer<NovelOutputPackage> detected_package;
+    detected_package = detectNovelOutputPackage(book_type);
+    if(detected_package.isNull())
+    {
+        qWarning()<<"[MainWindow::slotGenerateOutput] can't find package for book type:"<<book_type;
+        return;
+    }
 
     QPointer<QProcess> get_content_process = new QProcess{this};
     QString program = python_bin_path_;
     QStringList arguments;
-    arguments<<current_plugin_dir + "/" + plugin_command
+    arguments<<detected_package->getBaseDir().absoluteFilePath(detected_package->getMainCommand())
             <<"make"
             <<"--contents-file=" + contents_file_info.absoluteFilePath()
             <<"--output-file=" + output_file_info.absoluteFilePath();
@@ -426,6 +434,21 @@ NovelWebsitePackage* MainWindow::detectNovelWebsitePackage(const QString &url) c
         if(match.hasMatch())
         {
             return website_package;
+        }
+    }
+    return nullptr;
+}
+
+NovelOutputPackage *MainWindow::detectNovelOutputPackage(const QString &book_type) const
+{
+    QList<NovelOutputPackage*> packages = package_manager_->getObjects<NovelOutputPackage>();
+
+    foreach(NovelOutputPackage *package, packages)
+    {
+        QStringList book_type_list = package->getBookTypeList();
+        if(book_type_list.contains(book_type))
+        {
+            return package;
         }
     }
     return nullptr;

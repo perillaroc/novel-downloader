@@ -4,5 +4,12 @@
   "author": "perillaroc",
   "description": "epub_maker",
   "category": "py/book_output",
-  "main": "epub_maker/epub_maker.py"
+  "main": "epub_maker/epub_maker.py",
+  "contributes": {
+    "book_type": [
+      "epub",
+      "Epub",
+      "EPUB"
+    ]
+  }
 }

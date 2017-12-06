@@ -227,6 +227,9 @@
          </item>
          <item>
           <widget class="QComboBox" name="output_book_type_combo_box">
+           <property name="currentText">
+            <string>Epub</string>
+           </property>
            <item>
             <property name="text">
              <string>Epub</string>

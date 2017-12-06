@@ -19,12 +19,18 @@ public:
     virtual void pluginsInitialized();
     virtual void aboutToShutDown();
 
+    QDir getBaseDir() const;
+    QString getMainCommand() const;
+    QStringList getBookTypeList() const;
 signals:
 
 public slots:
 
 private:
+    QDir base_dir_;
+    QString main_;
 
+    QStringList book_type_list_;
 };
 
 }
