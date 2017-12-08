@@ -23,8 +23,9 @@ using namespace PackageSystem;
 
 const QString BOOK_INFO_JSON_FILE_NAME{"book.json"};
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QPointer<PackageSystem::PackageManager> package_manager, QWidget *parent) :
     QMainWindow{parent},
+    package_manager_{package_manager},
     ui{new Ui::MainWindow},
     novel_content_model_{new QStandardItemModel{this}}
 {
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setupButtons();
     setupActions();
+    setupMenus();
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
     connect(this, &MainWindow::signalGetChapterResponseReceived, this, &MainWindow::slotReceiveGetChapterResponse);
@@ -51,11 +53,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::setPackageManager(QPointer<PackageSystem::PackageManager> package_manager)
-{
-    package_manager_ = package_manager;
 }
 
 void MainWindow::slotGetContents(bool checked)
@@ -420,6 +417,104 @@ void MainWindow::setupActions()
          bool flag = QDesktopServices::openUrl(QUrl("http://www.wutuxs.com/"));
          qDebug()<<"[MainWindow::action_wutuxs_open_website] open url:"<<flag;
     });
+}
+
+void MainWindow::setupMenus()
+{
+    QList<NovelWebsitePackage*> website_packages = package_manager_->getObjects<NovelWebsitePackage>();
+
+    foreach(NovelWebsitePackage *website_package, website_packages)
+    {
+        QJsonArray menu_array = website_package->getMenu();
+        foreach(QJsonValue menu_value, menu_array)
+        {
+            QJsonObject menu_object = menu_value.toObject();
+            setupSubmenu(menu_object, this->menuBar());
+        }
+    }
+}
+
+void MainWindow::setupSubmenu(QJsonObject menu_object, QWidget *parent)
+{
+    QString menu_label = menu_object["label"].toString();
+    qDebug()<<"[MainWindow::setupSubmenu] menu:"<<menu_label;
+
+    if(menu_object.contains("submenu"))
+    {
+        QPointer<QMenu> menu = findMenu(menu_label, parent);
+        if(menu.isNull())
+        {
+            menu = createMenu(menu_label, parent);
+        }
+        QJsonArray sub_menus = menu_object["submenu"].toArray();
+        foreach(QJsonValue menu_value, sub_menus)
+        {
+            QJsonObject menu_object = menu_value.toObject();
+            setupSubmenu(menu_object, menu);
+        }
+    }
+    else
+    {
+        QPointer<QAction> action = findAction(menu_label, parent);
+        if(action.isNull())
+        {
+            action = createAction(menu_label, parent);
+        }
+    }
+}
+
+QPointer<QMenu> MainWindow::createMenu(const QString &title, QPointer<QWidget> parent)
+{
+    QPointer<QMenu> menu{new QMenu(parent)};
+    menu->setTitle(title);
+    QMenu *parent_menu = qobject_cast<QMenu*>(parent.data());
+    if(parent_menu)
+    {
+        parent_menu->addMenu(menu);
+    }
+    return menu;
+}
+
+QPointer<QMenu> MainWindow::findMenu(const QString &title, QPointer<QWidget> parent)
+{
+    if(parent == nullptr)
+    {
+        parent = this->menuBar();
+    }
+    QList<QMenu*> menus = parent->findChildren<QMenu*>();
+    foreach(QMenu *menu, menus)
+    {
+        if(menu->title() == title)
+        {
+            return QPointer<QMenu>(menu);
+        }
+    }
+    return QPointer<QMenu>();
+}
+
+QPointer<QAction> MainWindow::createAction(const QString &text, QPointer<QWidget> parent)
+{
+    QPointer<QAction> action{new QAction(parent)};
+    action->setText(text);
+    QMenu *parent_menu = qobject_cast<QMenu*>(parent.data());
+    if(parent_menu)
+    {
+        parent_menu->addAction(action);
+    }
+    return action;
+}
+
+QPointer<QAction> MainWindow::findAction(const QString &text, QPointer<QWidget> parent)
+{
+    QList<QAction*> actions = parent->findChildren<QAction*>();
+    foreach(QAction *action, actions)
+    {
+        if(action->text() == text)
+        {
+            return QPointer<QAction>(action);
+        }
+    }
+    return QPointer<QAction>();
 }
 
 NovelWebsitePackage* MainWindow::detectNovelWebsitePackage(const QString &url) const

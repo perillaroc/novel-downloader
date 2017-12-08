@@ -1,7 +1,6 @@
 #include "novel_website_package.h"
 #include "package_spec.h"
 
-#include <QJsonArray>
 #include <QtDebug>
 
 using namespace PackageSystem;
@@ -24,6 +23,7 @@ bool NovelWebsitePackage::initialize(const QStringList &arguments, QString *erro
     QJsonArray patterns = website_matcher["pattern"].toArray();
 
     website_matcher_pattern_ = patterns[0].toObject()["regexp"].toString();
+    menu_ = contributes_object["menu"].toArray();
 
     qDebug()<<website_matcher_pattern_;
 
@@ -55,4 +55,9 @@ QString NovelWebsitePackage::getMainCommand() const
 QString NovelWebsitePackage::getWebsiteMatcherPattern() const
 {
     return website_matcher_pattern_;
+}
+
+QJsonArray NovelWebsitePackage::getMenu() const
+{
+    return menu_;
 }

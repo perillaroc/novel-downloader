@@ -23,8 +23,7 @@ int main(int argc, char *argv[])
     package_manager->setPackagePaths(package_paths);
     package_manager->loadPackages();
 
-    MainWindow w;
-    w.setPackageManager(package_manager);
+    MainWindow w{package_manager};
     w.show();
 
     return a.exec();

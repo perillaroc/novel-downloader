@@ -28,10 +28,12 @@ RC_ICONS = ./assert/icon/book.ico
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    util.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    util.h
 
 FORMS += \
         mainwindow.ui

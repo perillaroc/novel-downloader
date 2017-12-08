@@ -3,6 +3,7 @@
 #include "package_interface.h"
 
 #include <QDir>
+#include <QJsonArray>
 
 namespace PackageSystem{
 
@@ -21,6 +22,7 @@ public:
     QDir getBaseDir() const;
     QString getMainCommand() const;
     QString getWebsiteMatcherPattern() const;
+    QJsonArray getMenu() const;
 
 signals:
 
@@ -30,6 +32,7 @@ private:
     QDir base_dir_;
     QString main_;
     QString website_matcher_pattern_;
+    QJsonArray menu_;
 };
 
 }

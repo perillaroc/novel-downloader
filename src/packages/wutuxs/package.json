@@ -12,6 +12,22 @@
           "regexp": "www\\.wutuxs\\.com"
         }
       ]
-    }
+    },
+    "menu": [
+      {
+        "label": "Packages",
+        "submenu": [
+          {
+            "label": "wutuxs",
+            "submenu": [
+              {
+                "label": "Open website",
+                "command": "open_website:www.wutuxs.com"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

@@ -31,10 +31,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QPointer<PackageSystem::PackageManager> package_manager, QWidget *parent = 0);
     ~MainWindow();
-
-    void setPackageManager(QPointer<PackageSystem::PackageManager> package_manager);
 
 signals:
     void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
@@ -56,6 +54,14 @@ private slots:
 private:
     void setupButtons();
     void setupActions();
+    void setupMenus();
+
+    void setupSubmenu(QJsonObject menu, QWidget *parent);
+
+    QPointer<QMenu> createMenu(const QString &title, QPointer<QWidget> parent = nullptr);
+    QPointer<QMenu> findMenu(const QString &title, QPointer<QWidget>  parent = nullptr);
+    QPointer<QAction> createAction(const QString &text, QPointer<QWidget>  parent);
+    QPointer<QAction> findAction(const QString &text, QPointer<QWidget>  parent);
 
     PackageSystem::NovelWebsitePackage *detectNovelWebsitePackage(const QString &url) const;
     PackageSystem::NovelOutputPackage *detectNovelOutputPackage(const QString &book_type) const;

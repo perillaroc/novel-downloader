@@ -12,6 +12,23 @@
           "regexp": "www\\.biquge\\.com"
         }
       ]
-    }
+    },
+    "menu": [
+      {
+        "label": "Packages",
+        "submenu": [
+          {
+            "label": "biquge",
+            "submenu": [
+              {
+                "label": "Open website",
+                "command": "open_website:www.biquge.com"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+
   }
 }

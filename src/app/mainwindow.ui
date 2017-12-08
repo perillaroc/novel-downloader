@@ -337,7 +337,7 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
      <string>File</string>
     </property>
@@ -349,20 +349,13 @@
     </property>
     <addaction name="action_about"/>
    </widget>
-   <widget class="QMenu" name="menuPlugin">
+   <widget class="QMenu" name="menu_packages">
     <property name="title">
-     <string>Plugin</string>
+     <string>Packages</string>
     </property>
-    <widget class="QMenu" name="menuwutuxs">
-     <property name="title">
-      <string>wutuxs</string>
-     </property>
-     <addaction name="action_wutuxs_open_website"/>
-    </widget>
-    <addaction name="menuwutuxs"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuPlugin"/>
+   <addaction name="menu_file"/>
+   <addaction name="menu_packages"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>

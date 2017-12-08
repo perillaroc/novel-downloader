@@ -12,6 +12,22 @@
           "regexp": "www\\.yunlaige\\.com"
         }
       ]
-    }
+    },
+    "menu": [
+      {
+        "label": "Packages",
+        "submenu": [
+          {
+            "label": "yunlaige",
+            "submenu": [
+              {
+                "label": "Open website",
+                "command": "open_website:www.yunlaige.com"
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
