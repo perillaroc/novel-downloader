@@ -412,11 +412,6 @@ void MainWindow::setupActions()
     connect(ui->action_about, &QAction::triggered, [=](bool){
         QMessageBox::about(this, tr("Novel Downloader"), tr("Created by perillaroc."));
     });
-
-    connect(ui->action_wutuxs_open_website, &QAction::triggered, [=](bool){
-         bool flag = QDesktopServices::openUrl(QUrl("http://www.wutuxs.com/"));
-         qDebug()<<"[MainWindow::action_wutuxs_open_website] open url:"<<flag;
-    });
 }
 
 void MainWindow::setupMenus()
@@ -459,6 +454,20 @@ void MainWindow::setupSubmenu(QJsonObject menu_object, QWidget *parent)
         if(action.isNull())
         {
             action = createAction(menu_label, parent);
+        }
+        action->disconnect();
+        QString command = menu_object["command"].toString();
+        if(command.startsWith("core."))
+        {
+            QString core_command = command.mid(5);
+            if(core_command == "open_website")
+            {
+                qDebug()<<"[MainWindow::setupSubmenu] find core.open_website.";
+                QString url = menu_object["url"].toString();
+                connect(action, &QAction::triggered, [=](bool){
+                    bool flag = QDesktopServices::openUrl(QUrl(url));
+                });
+            }
         }
     }
 }

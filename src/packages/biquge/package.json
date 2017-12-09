@@ -22,7 +22,8 @@
             "submenu": [
               {
                 "label": "Open website",
-                "command": "open_website:www.biquge.com"
+                "command": "core.open_website",
+                "url": "www.biquge.com"
               }
             ]
           }

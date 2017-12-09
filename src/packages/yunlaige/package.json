@@ -22,7 +22,8 @@
             "submenu": [
               {
                 "label": "Open website",
-                "command": "open_website:www.yunlaige.com"
+                "command": "core.open_website",
+                "url": "www.yunlaige.com"
               }
             ]
           }
