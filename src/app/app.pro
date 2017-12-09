@@ -29,11 +29,15 @@ RC_ICONS = ./assert/icon/book.ico
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    util.cpp
+    util.cpp \
+    download_manager.cpp \
+    download_task.cpp
 
 HEADERS += \
         mainwindow.h \
-    util.h
+    util.h \
+    download_manager.h \
+    download_task.h
 
 FORMS += \
         mainwindow.ui

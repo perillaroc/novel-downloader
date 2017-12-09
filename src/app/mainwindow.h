@@ -15,16 +15,14 @@ class NovelWebsitePackage;
 class NovelOutputPackage;
 }
 
+namespace Core{
+class DownloadTask;
+class DownloadManager;
+}
+
 namespace Ui {
 class MainWindow;
 }
-
-struct DownloadTask{
-    QString name_;
-    QString link_;
-    QString directory_;
-    int task_no_;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -36,7 +34,6 @@ public:
 
 signals:
     void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
-    void signalGetChapterResponseReceived(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
 
 private slots:
     void slotGetContents(bool checked=true);
@@ -47,7 +44,8 @@ private slots:
 
     void slotDownload(bool checked=true);
     void slotPauseDownload(bool checked=true);
-    void slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err);
+    void slotDownloadChapterStarted(QPointer<Core::DownloadTask> task);
+    void slotReceiveGetChapterResponse(QPointer<Core::DownloadTask> task, const QByteArray &std_out, const QByteArray &std_err);
 
     void slotGenerateOutput(bool checked=true);
 
@@ -70,6 +68,7 @@ private:
     Ui::MainWindow *ui;
 
     QPointer<PackageSystem::PackageManager> package_manager_;
+    QPointer<Core::DownloadManager> download_manager_;
 
     QPointer<QStandardItemModel> novel_content_model_;
 
@@ -77,6 +76,5 @@ private:
     QString python_bin_path_;
     QString packages_dir_;
 
-    QVector<DownloadTask> download_tasks_;
-    QFutureWatcher<void> future_watcher_;
+    friend class Core::DownloadTask;
 };

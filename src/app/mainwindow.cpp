@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "download_task.h"
+#include "download_manager.h"
+
 #include <QMap>
 #include <QStandardItemModel>
 #include <QJsonArray>
@@ -19,6 +22,7 @@
 #include <package_system/novel_website_package.h>
 #include <package_system/novel_output_package.h>
 
+using namespace Core;
 using namespace PackageSystem;
 
 const QString BOOK_INFO_JSON_FILE_NAME{"book.json"};
@@ -26,11 +30,10 @@ const QString BOOK_INFO_JSON_FILE_NAME{"book.json"};
 MainWindow::MainWindow(QPointer<PackageSystem::PackageManager> package_manager, QWidget *parent) :
     QMainWindow{parent},
     package_manager_{package_manager},
+    download_manager_{new DownloadManager{this}},
     ui{new Ui::MainWindow},
     novel_content_model_{new QStandardItemModel{this}}
 {
-    qRegisterMetaType<DownloadTask>("DownloadTask");
-
     ui->setupUi(this);
 
     ui->novel_content_view->setModel(novel_content_model_);
@@ -40,7 +43,6 @@ MainWindow::MainWindow(QPointer<PackageSystem::PackageManager> package_manager, 
     setupMenus();
 
     connect(this, &MainWindow::signalGetContentsResponseReceived, this, &MainWindow::slotReceiveGetGontentsResponse);
-    connect(this, &MainWindow::signalGetChapterResponseReceived, this, &MainWindow::slotReceiveGetChapterResponse);
 
     QString app_dir = QApplication::applicationDirPath();
     python_env_dir_ = app_dir + "/../vendor/python_env";
@@ -195,31 +197,31 @@ void MainWindow::slotDownload(bool checked)
     }
 
     // generate download task
-    download_tasks_.clear();
+    QVector<QPointer<DownloadTask>> download_tasks;
     for(int i=0; i<novel_content_model_->rowCount(); i++)
     {
-        DownloadTask task;
-        task.name_ = novel_content_model_->item(i, 0)->text();
-        task.link_ = novel_content_model_->item(i, 1)->text();
-        task.directory_ = local_directory;
-        task.task_no_ = i;
+        QPointer<DownloadTask> task = new DownloadTask{QPointer<MainWindow>{this}};
+        task->name_ = novel_content_model_->item(i, 0)->text();
+        task->link_ = novel_content_model_->item(i, 1)->text();
+        task->directory_ = local_directory;
+        task->task_no_ = i;
         novel_content_model_->item(i, 2)->setText("Queue");
         novel_content_model_->item(i, 2)->setData(QColor(Qt::blue), Qt::DecorationRole);
-        download_tasks_.push_back(task);
+        download_tasks.push_back(task);
     }
 
 
     // create contents json file.
     QJsonArray contents_list;
-    foreach(DownloadTask task, download_tasks_)
+    foreach(QPointer<DownloadTask> task, download_tasks)
     {
         QJsonObject task_object;
-        task_object["name"] = task.name_;
-        task_object["link"] = task.link_;
-        QString link = task.link_;
+        task_object["name"] = task->name_;
+        task_object["link"] = task->link_;
+        QString link = task->link_;
         QString file_name = link.mid(link.lastIndexOf('/')+1);
 
-        QFileInfo chapter_file_info(QDir(task.directory_), file_name);
+        QFileInfo chapter_file_info(QDir(task->directory_), file_name);
         task_object["file_path"] = chapter_file_info.absoluteFilePath();
         contents_list.append(task_object);
     }
@@ -243,62 +245,22 @@ void MainWindow::slotDownload(bool checked)
     contents_file_out<<contents_byte_array;
     contents_file.close();
 
-
-    // start download.
-    future_watcher_.setFuture(QtConcurrent::map(download_tasks_, [this](const DownloadTask &task){
-        novel_content_model_->item(task.task_no_, 2)->setText(tr("Active"));
-        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::green) ,Qt::DecorationRole);
-        QString content_url = task.link_;
-        QPointer<QProcess> get_chapter_process = new QProcess;
-        QString program = python_bin_path_;
-
-        QPointer<NovelWebsitePackage> detected_package;
-        detected_package = detectNovelWebsitePackage(content_url);
-        if(detected_package.isNull())
-        {
-            qWarning()<<"[MainWindow::slotDownload] can't find package for url:"<<content_url;
-            return;
-        }
-
-        QStringList arguments;
-        arguments<<detected_package->getBaseDir().absoluteFilePath(detected_package->getMainCommand())
-                 <<"chapter"
-                 <<"--url=" + content_url;
-
-        connect(get_chapter_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                [this, &task, &get_chapter_process](int exit_code, QProcess::ExitStatus exit_status){
-            QByteArray std_out_array = get_chapter_process->readAllStandardOutput();
-            QByteArray std_err_array = get_chapter_process->readAllStandardError();
-
-            if(exit_status == QProcess::NormalExit)
-            {
-                emit signalGetChapterResponseReceived(task, std_out_array, std_err_array);
-            }
-            else
-            {
-                qWarning()<<"[MainWindow::slotDownload] process exit abnormal."<<exit_code<<exit_status;
-                qDebug()<<"[MainWindow::slotDownload] std out:\n"
-                        <<std_out_array;
-                qDebug()<<"[MainWindow::slotDownload] std err out:\n"
-                        <<std_err_array;
-            }
-            get_chapter_process->deleteLater();
-        });
-
-        get_chapter_process->start(program, arguments);
-        get_chapter_process->waitForFinished();
-
-
-        qDebug()<<"[MainWindow::slotDownload] run task:"<<content_url;
-    }));
+    download_manager_->setDownloadTaskQueue(download_tasks);
+    download_manager_->startDownload();
 }
 
 void MainWindow::slotPauseDownload(bool checked)
 {
-    future_watcher_.setPaused(checked);
+    download_manager_->setPaused(checked);
 }
 
-void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const QByteArray &std_out, const QByteArray &std_err)
+void MainWindow::slotDownloadChapterStarted(QPointer<DownloadTask> task)
+{
+    novel_content_model_->item(task->task_no_, 2)->setText(tr("Active"));
+    novel_content_model_->item(task->task_no_, 2)->setData(QColor(Qt::green) ,Qt::DecorationRole);
+}
+
+void MainWindow::slotReceiveGetChapterResponse(QPointer<DownloadTask> task, const QByteArray &std_out, const QByteArray &std_err)
 {
     QJsonParseError json_parse_error;
     QJsonDocument doc = QJsonDocument::fromJson(std_out, &json_parse_error);
@@ -315,17 +277,17 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     QJsonObject response = data["response"].toObject();
     QString chapter = response["chapter"].toString();
 
-    QString link = task.link_;
+    QString link = task->link_;
     QString file_name = link.mid(link.lastIndexOf('/')+1);
 
-    QFileInfo chapter_file_info(QDir(task.directory_), file_name);
+    QFileInfo chapter_file_info(QDir(task->directory_), file_name);
 
     QFile chapter_file(chapter_file_info.absoluteFilePath());
     if (!chapter_file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         qWarning()<<"[MainWindow::slotReceiveGetChapterResponse] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
-        novel_content_model_->item(task.task_no_, 2)->setText(tr("Error"));
-        novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
+        novel_content_model_->item(task->task_no_, 2)->setText(tr("Error"));
+        novel_content_model_->item(task->task_no_, 2)->setData(QColor(Qt::red) ,Qt::DecorationRole);
         return;
     }
 
@@ -334,8 +296,8 @@ void MainWindow::slotReceiveGetChapterResponse(const DownloadTask &task, const Q
     out << chapter;
     chapter_file.close();
 
-    novel_content_model_->item(task.task_no_, 2)->setText(tr("Complete"));
-    novel_content_model_->item(task.task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
+    novel_content_model_->item(task->task_no_, 2)->setText(tr("Complete"));
+    novel_content_model_->item(task->task_no_, 2)->setData(QColor(Qt::yellow) ,Qt::DecorationRole);
 }
 
 void MainWindow::slotGenerateOutput(bool checked)
