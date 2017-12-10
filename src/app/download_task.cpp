@@ -23,7 +23,7 @@ void DownloadTask::run()
 
     QString content_url = link_;
     QPointer<QProcess> get_chapter_process = new QProcess;
-    QString program = main_window_->python_bin_path_;
+    QString program = main_window_->getPythonBinPath();
 
     QPointer<NovelWebsitePackage> detected_package;
     detected_package = main_window_->detectNovelWebsitePackage(content_url);

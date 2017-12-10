@@ -31,13 +31,15 @@ SOURCES += \
         mainwindow.cpp \
     util.cpp \
     download_manager.cpp \
-    download_task.cpp
+    download_task.cpp \
+    menu_manager.cpp
 
 HEADERS += \
         mainwindow.h \
     util.h \
     download_manager.h \
-    download_task.h
+    download_task.h \
+    menu_manager.h
 
 FORMS += \
         mainwindow.ui

@@ -4,9 +4,10 @@
 #include <QObject>
 #include <QPointer>
 
-class MainWindow;
 
 namespace Core{
+
+class MainWindow;
 
 class DownloadTask: public QObject
 {
