@@ -41,7 +41,7 @@ signals:
 
 public slots:
     void slotDownloadChapterStarted(QPointer<DownloadTask> task);
-    void slotReceiveGetChapterResponse(QPointer<DownloadTask> task, const QByteArray &std_out, const QByteArray &std_err);
+    void slotReceiveGetChapterResponse(QPointer<DownloadTask> task, bool is_successed=true, const QString& error_msg="");
 
 private slots:
     void slotGetContents(bool checked=true);

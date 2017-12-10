@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <QProcess>
+#include <QJsonParseError>
 #include <QtDebug>
 
 #include <package_system/novel_website_package.h>
@@ -46,7 +47,40 @@ void DownloadTask::run()
 
         if(exit_status == QProcess::NormalExit)
         {
-            main_window_->slotReceiveGetChapterResponse(this, std_out_array, std_err_array);
+            QJsonParseError json_parse_error;
+            QJsonDocument doc = QJsonDocument::fromJson(std_out_array, &json_parse_error);
+
+            if(json_parse_error.error != QJsonParseError::NoError)
+            {
+                qWarning()<<"[DownloadTask::run] parse json string error:"<<json_parse_error.errorString();
+                qDebug()<<"[DownloadTask::run] std err out:\n"<<std_err_array;
+                return;
+            }
+
+            QJsonObject root = doc.object();
+            QJsonObject data = root["data"].toObject();
+            QJsonObject response = data["response"].toObject();
+            QString chapter = response["chapter"].toString();
+
+            QString link = link_;
+            QString file_name = link.mid(link.lastIndexOf('/')+1);
+
+            QFileInfo chapter_file_info(QDir(directory_), file_name);
+
+            QFile chapter_file(chapter_file_info.absoluteFilePath());
+            if (!chapter_file.open(QIODevice::WriteOnly | QIODevice::Text))
+            {
+                //qWarning()<<"[DownloadTask::run] can't open chapter file:"<<chapter_file_info.absoluteFilePath();
+                main_window_->slotReceiveGetChapterResponse(this, false, "can't open chapter file: " + chapter_file_info.absoluteFilePath());
+                return;
+            }
+
+            QTextStream out(&chapter_file);
+            out.setCodec("UTF-8");
+            out << chapter;
+            chapter_file.close();
+
+            main_window_->slotReceiveGetChapterResponse(this);
         }
         else
         {
