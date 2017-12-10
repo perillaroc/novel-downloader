@@ -36,9 +36,6 @@ public:
 
     QString getPythonBinPath() const;
 
-    PackageSystem::NovelWebsitePackage *detectNovelWebsitePackage(const QString &url) const;
-    PackageSystem::NovelOutputPackage *detectNovelOutputPackage(const QString &book_type) const;
-
 signals:
     void signalGetContentsResponseReceived(const QByteArray &std_out, const QByteArray &std_err);
 

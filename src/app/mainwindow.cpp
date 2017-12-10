@@ -4,6 +4,7 @@
 #include "download_task.h"
 #include "download_manager.h"
 #include "menu_manager.h"
+#include "util.h"
 
 #include <QStandardItemModel>
 #include <QJsonArray>
@@ -12,9 +13,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
-#include <QDesktopServices>
 #include <QUrl>
-#include <QRegularExpression>
 #include <QtDebug>
 
 #include <package_system/package_manager.h>
@@ -77,7 +76,7 @@ void MainWindow::slotGetContents(bool checked)
     }
 
     QPointer<NovelWebsitePackage> detected_package;
-    detected_package = detectNovelWebsitePackage(content_url);
+    detected_package = Util::detectNovelWebsitePackage(package_manager_, content_url);
     if(detected_package.isNull())
     {
         qWarning()<<"[MainWindow::slotGetContents] can't find package for url:"<<content_url;
@@ -333,7 +332,7 @@ void MainWindow::slotGenerateOutput(bool checked)
     QFileInfo output_file_info(QDir(output_directory), output_file_name);
 
     QPointer<NovelOutputPackage> detected_package;
-    detected_package = detectNovelOutputPackage(book_type);
+    detected_package = Util::detectNovelOutputPackage(package_manager_, book_type);
     if(detected_package.isNull())
     {
         qWarning()<<"[MainWindow::slotGenerateOutput] can't find package for book type:"<<book_type;
@@ -389,36 +388,4 @@ void MainWindow::setupActions()
 void MainWindow::setupMenus()
 {
     menu_manager_->setupMenus();
-}
-
-NovelWebsitePackage* MainWindow::detectNovelWebsitePackage(const QString &url) const
-{
-    QList<NovelWebsitePackage*> website_packages = package_manager_->getObjects<NovelWebsitePackage>();
-
-    foreach(NovelWebsitePackage *website_package, website_packages)
-    {
-        QString website_matcher_pattern = website_package->getWebsiteMatcherPattern();
-        QRegularExpression re(website_matcher_pattern);
-        QRegularExpressionMatch match = re.match(url);
-        if(match.hasMatch())
-        {
-            return website_package;
-        }
-    }
-    return nullptr;
-}
-
-NovelOutputPackage *MainWindow::detectNovelOutputPackage(const QString &book_type) const
-{
-    QList<NovelOutputPackage*> packages = package_manager_->getObjects<NovelOutputPackage>();
-
-    foreach(NovelOutputPackage *package, packages)
-    {
-        QStringList book_type_list = package->getBookTypeList();
-        if(book_type_list.contains(book_type))
-        {
-            return package;
-        }
-    }
-    return nullptr;
 }

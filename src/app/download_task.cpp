@@ -1,5 +1,6 @@
 #include "download_task.h"
 #include "mainwindow.h"
+#include "util.h"
 
 #include <QProcess>
 #include <QtDebug>
@@ -26,7 +27,7 @@ void DownloadTask::run()
     QString program = main_window_->getPythonBinPath();
 
     QPointer<NovelWebsitePackage> detected_package;
-    detected_package = main_window_->detectNovelWebsitePackage(content_url);
+    detected_package = Util::detectNovelWebsitePackage(main_window_->getPackageManager(), content_url);
     if(detected_package.isNull())
     {
         qWarning()<<"[DownloadTask::run] can't find package for url:"<<content_url;
