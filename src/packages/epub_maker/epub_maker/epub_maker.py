@@ -34,8 +34,27 @@ def make(contents_file, output_file):
         file_name = pathlib.PurePath(file_path).name
 
         chapter = epub.EpubHtml(title=name, file_name=file_name)
-        with open(file_path, encoding='utf-8') as f:
-            chapter_html = f.read()
+        try:
+            with open(file_path, encoding='utf-8') as f:
+                chapter_html = f.read()
+                chapter.content = chapter_html
+        except FileNotFoundError as e:
+            chapter_html = f"""
+<html>
+ <head>
+ </head>
+ <body>
+  <div>
+   <h1>
+    {name}
+   </h1>
+   <div>
+    <p>未下载</p>
+   </div>
+  </div>
+ </body>
+</html>
+"""
             chapter.content = chapter_html
 
         book.add_item(chapter)
