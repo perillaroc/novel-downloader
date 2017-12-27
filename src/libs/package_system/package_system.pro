@@ -9,9 +9,7 @@ CONFIG += shared dll
 
 DLLDESTDIR = $$build_bin_dir
 
-win32{
-    DESTDIR = $$build_base_dir/lib
-}
+DESTDIR = $$build_base_dir/lib
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings

@@ -46,6 +46,9 @@ MainWindow::MainWindow(QPointer<PackageSystem::PackageManager> package_manager, 
     QString app_dir = QApplication::applicationDirPath();
     python_env_dir_ = app_dir + "/../vendor/python_env";
     python_bin_path_ = python_env_dir_ + "/python.exe";
+#if defined(Q_OS_MAC)
+    python_bin_path_ = python_env_dir_ + "/bin/python";
+#endif
     packages_dir_ = app_dir + "/../packages";
 
     return;
@@ -94,7 +97,7 @@ void MainWindow::slotGetContents(bool checked)
             [=](int exit_code, QProcess::ExitStatus exit_status){
         QByteArray std_out_array = get_content_process->readAllStandardOutput();
         QByteArray std_err_array = get_content_process->readAllStandardError();
-        if(exit_status == QProcess::NormalExit)
+        if(exit_status == QProcess::NormalExit && exit_code == 0)
         {
             emit signalGetContentsResponseReceived(std_out_array, std_err_array);
         }
@@ -108,6 +111,10 @@ void MainWindow::slotGetContents(bool checked)
         }
         get_content_process->deleteLater();
     });
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LANG", "zh_CN.UTF-8");
+    get_content_process->setProcessEnvironment(env);
 
     get_content_process->start(program, arguments);
 
@@ -336,6 +343,10 @@ void MainWindow::slotGenerateOutput(bool checked)
         get_content_process->deleteLater();
     });
 
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LANG", "zh_CN.UTF-8");
+    get_content_process->setProcessEnvironment(env);
     get_content_process->start(program, arguments);
 }
 

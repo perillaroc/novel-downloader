@@ -2,6 +2,10 @@ include(../../novel-downloader.pri)
 
 QT       += core gui widgets concurrent
 
+macx {
+CONFIG-=app_bundle
+}
+
 TARGET = novel_downloader
 TEMPLATE = app
 

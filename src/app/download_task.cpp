@@ -93,6 +93,10 @@ void DownloadTask::run()
         get_chapter_process->deleteLater();
     });
 
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("LANG", "zh_CN.UTF-8");
+    get_chapter_process->setProcessEnvironment(env);
     get_chapter_process->start(program, arguments);
     get_chapter_process->waitForFinished();
 
